@@ -1,0 +1,539 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  CONTRACTOR
+  CUSTOMER
+}
+
+enum RequestStatus {
+  NEW
+  AWAITING_REVIEW
+  NEEDS_MORE_INFORMATION
+  ESTIMATE_NEEDED
+  ESTIMATE_SENT
+  CUSTOMER_APPROVAL_PENDING
+  ACCEPTED
+  DECLINED
+  CONVERTED_TO_JOB
+  CANCELLED
+  ARCHIVED
+}
+
+enum JobStatus {
+  DRAFT
+  UNASSIGNED
+  ASSIGNED
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  PAUSED
+  WAITING_ON_CUSTOMER
+  WAITING_ON_MATERIALS
+  CHANGE_APPROVAL_NEEDED
+  QUALITY_REVIEW
+  COMPLETED
+  CLOSED
+  CANCELLED
+}
+
+enum PriorityLevel {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+  EMERGENCY_REVIEW
+}
+
+enum PropertyType {
+  SINGLE_FAMILY
+  MULTI_FAMILY
+  CONDO
+  TOWNHOME
+  APARTMENT
+  COMMERCIAL
+  OTHER
+}
+
+enum CustomerRelationship {
+  OWNER
+  RENTER
+  PROPERTY_MANAGER
+  OTHER
+}
+
+enum PreferredContactMethod {
+  EMAIL
+  PHONE
+  TEXT
+}
+
+enum EstimateStatus {
+  DRAFT
+  SENT
+  APPROVED
+  DECLINED
+  EXPIRED
+}
+
+enum AppointmentStatus {
+  PROPOSED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  BLOCKED
+  COMPLETED
+  CANCELLED
+}
+
+enum MessageVisibility {
+  CUSTOMER
+  CONTRACTOR
+  INTERNAL
+  ADMIN_CONTRACTOR
+}
+
+enum NoteVisibility {
+  CUSTOMER
+  INTERNAL
+  ADMIN_CONTRACTOR
+}
+
+enum FileCategory {
+  PHOTO
+  VIDEO
+  PDF
+  RECEIPT
+  INSPECTION
+  SPECIFICATION
+  REFERENCE
+  OTHER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum ReviewType {
+  PRIVATE_FEEDBACK
+  TESTIMONIAL
+  POST_COMPLETION
+}
+
+enum ProgressCalculationMethod {
+  EQUAL_WEIGHT
+  ASSIGNED_WEIGHT
+}
+
+model User {
+  id            String   @id @default(cuid())
+  supabaseId    String   @unique
+  email         String   @unique
+  firstName     String
+  lastName      String
+  phone         String?
+  role          UserRole @default(CUSTOMER)
+  isActive      Boolean  @default(true)
+  emailVerified Boolean  @default(false)
+  avatarUrl     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  customerProfile   CustomerProfile?
+  contractorProfile ContractorProfile?
+
+  serviceRequests ServiceRequest[] @relation("CustomerRequests")
+  assignedJobs    Job[]            @relation("AssignedContractor")
+  managedJobs     Job[]            @relation("JobManager")
+  messages        Message[]
+  notes           Note[]
+  auditLogs       AuditLog[]
+  reviews         Review[]
+}
+
+model CustomerProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultAddress   String?
+  defaultCity      String?
+  defaultState     String?
+  defaultZip       String?
+  preferredContact PreferredContactMethod @default(EMAIL)
+  marketingOptIn   Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ContractorProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String?
+  bio             String?
+  skills          String[] @default([])
+  serviceRadius   Int?
+  isAvailable     Boolean  @default(true)
+  hourlyRate      Decimal? @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model SiteSettings {
+  id                    String   @id @default("default")
+  companyName           String   @default("Redemption Home Services")
+  tagline               String   @default("Reliable repairs. Clear communication. Work completed with care.")
+  logoUrl               String?
+  primaryColor          String   @default("#1e3a5f")
+  accentColor           String   @default("#c45c26")
+  phone                 String   @default("(614) 555-0199")
+  email                 String   @default("hello@redemptionhomeservices.com")
+  address               String   @default("Columbus, Ohio")
+  serviceArea           String   @default("Columbus and Central Ohio")
+  businessHours         String   @default("Mon–Fri 8am–6pm, Sat 9am–2pm")
+  emergencyDisclaimer   String   @default("We are not an emergency service. For fire, gas leaks, major flooding, or life-threatening situations, call 911 immediately.")
+  facebookUrl           String?
+  instagramUrl          String?
+  linkedinUrl           String?
+  googleBusinessUrl     String?
+  aboutStory            String?
+  mission               String?
+  values                String?
+  servicePhilosophy     String?
+  professionalStandards String?
+  licensingLanguage     String?
+  insuranceLanguage     String?
+  progressMethod        ProgressCalculationMethod @default(EQUAL_WEIGHT)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model ServiceCategory {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  icon        String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  services    Service[]
+}
+
+model Service {
+  id              String          @id @default(cuid())
+  categoryId      String
+  category        ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name            String
+  slug            String          @unique
+  description     String
+  exampleProjects String?
+  startingPrice   String?
+  imageUrl        String?
+  sortOrder       Int             @default(0)
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  serviceRequests ServiceRequest[]
+}
+
+model ServiceRequest {
+  id                      String               @id @default(cuid())
+  referenceNumber         String               @unique
+  customerId              String?
+  customer                User?                @relation("CustomerRequests", fields: [customerId], references: [id])
+  serviceId               String?
+  service                 Service?             @relation(fields: [serviceId], references: [id])
+  status                  RequestStatus        @default(NEW)
+  priority                PriorityLevel        @default(NORMAL)
+  firstName               String
+  lastName                String
+  email                   String
+  phone                   String
+  preferredContact        PreferredContactMethod
+  serviceAddress          String
+  city                    String
+  state                   String               @default("OH")
+  zipCode                 String
+  propertyType            PropertyType
+  customerRelationship    CustomerRelationship
+  serviceCategory         String
+  title                   String
+  description             String
+  requestedCompletionDate DateTime?
+  preferredDates          Json?
+  urgencyLevel            PriorityLevel        @default(NORMAL)
+  safetyConcern           Boolean              @default(false)
+  utilitiesShutoff        Boolean              @default(false)
+  petsPresent             Boolean              @default(false)
+  accessInstructions      String?
+  budgetRange             String?
+  referralSource          String?
+  contactPermission       Boolean              @default(true)
+  termsAccepted           Boolean              @default(false)
+  conditionalAnswers      Json?
+  isEmergencyFlagged      Boolean              @default(false)
+  accountInviteSent       Boolean              @default(false)
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+
+  job       Job?
+  estimates Estimate[]
+  files     File[]
+  notes     Note[]
+  messages  Message[]
+  auditLogs AuditLog[]
+}
+
+model Estimate {
+  id               String         @id @default(cuid())
+  serviceRequestId String
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  jobId            String?
+  job              Job?           @relation(fields: [jobId], references: [id])
+  status           EstimateStatus @default(DRAFT)
+  title            String
+  description      String?
+  laborCost        Decimal        @db.Decimal(10, 2)
+  materialsCost    Decimal        @db.Decimal(10, 2)
+  totalCost        Decimal        @db.Decimal(10, 2)
+  validUntil       DateTime?
+  sentAt           DateTime?
+  approvedAt       DateTime?
+  declinedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Job {
+  id                    String     @id @default(cuid())
+  referenceNumber       String     @unique
+  serviceRequestId      String     @unique
+  serviceRequest        ServiceRequest @relation(fields: [serviceRequestId], references: [id])
+  customerId            String
+  contractorId          String?
+  contractor            User?      @relation("AssignedContractor", fields: [contractorId], references: [id])
+  managerId             String?
+  manager               User?      @relation("JobManager", fields: [managerId], references: [id])
+  title                 String
+  description           String
+  serviceAddress        String
+  city                  String
+  state                 String     @default("OH")
+  zipCode               String
+  status                JobStatus  @default(DRAFT)
+  priority              PriorityLevel @default(NORMAL)
+  completionPercentage  Int        @default(0)
+  completionOverride    Int?
+  completionOverrideReason String?
+  accessInstructions    String?
+  safetyNotes           String?
+  propertyNotes         String?
+  scheduledStart        DateTime?
+  scheduledEnd          DateTime?
+  actualStart           DateTime?
+  actualEnd             DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+
+  tasks        Task[]
+  appointments Appointment[]
+  estimates    Estimate[]
+  files        File[]
+  notes        Note[]
+  messages     Message[]
+  invoices     Invoice[]
+  reviews      Review[]
+  auditLogs    AuditLog[]
+}
+
+model Task {
+  id                 String     @id @default(cuid())
+  jobId              String
+  job                Job        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  parentTaskId       String?
+  parentTask         Task?      @relation("SubTasks", fields: [parentTaskId], references: [id])
+  subTasks           Task[]     @relation("SubTasks")
+  title              String
+  description        String?
+  status             TaskStatus @default(PENDING)
+  progressPercentage Int        @default(0)
+  weight             Int        @default(1)
+  sortOrder          Int        @default(0)
+  estimatedHours     Decimal?   @db.Decimal(6, 2)
+  actualHours        Decimal?   @db.Decimal(6, 2)
+  materialsRequired  String?
+  blockerReason      String?
+  completedAt        DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  jobId       String
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status      AppointmentStatus @default(PROPOSED)
+  startTime   DateTime
+  endTime     DateTime
+  notes       String?
+  confirmedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Message {
+  id               String            @id @default(cuid())
+  serviceRequestId String?
+  serviceRequest   ServiceRequest?   @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  jobId            String?
+  job              Job?              @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  senderId         String
+  sender           User              @relation(fields: [senderId], references: [id])
+  parentMessageId  String?
+  parentMessage    Message?          @relation("Thread", fields: [parentMessageId], references: [id])
+  replies          Message[]         @relation("Thread")
+  visibility       MessageVisibility @default(CUSTOMER)
+  subject          String?
+  body             String
+  isRead           Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model File {
+  id               String          @id @default(cuid())
+  serviceRequestId String?
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  jobId            String?
+  job              Job?            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  uploadedById     String?
+  fileName         String
+  fileUrl          String
+  fileSize         Int
+  mimeType         String
+  category         FileCategory    @default(PHOTO)
+  caption          String?
+  isCustomerVisible Boolean        @default(true)
+  createdAt        DateTime        @default(now())
+}
+
+model Note {
+  id               String          @id @default(cuid())
+  serviceRequestId String?
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  jobId            String?
+  job              Job?            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  authorId         String
+  author           User            @relation(fields: [authorId], references: [id])
+  visibility       NoteVisibility  @default(INTERNAL)
+  content          String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  jobId       String
+  job         Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  invoiceNumber String      @unique
+  status      InvoiceStatus @default(DRAFT)
+  subtotal    Decimal       @db.Decimal(10, 2)
+  tax         Decimal       @db.Decimal(10, 2) @default(0)
+  total       Decimal       @db.Decimal(10, 2)
+  dueDate     DateTime?
+  sentAt      DateTime?
+  paidAt      DateTime?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Review {
+  id               String     @id @default(cuid())
+  jobId            String
+  job              Job        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  customerId       String
+  customer         User       @relation(fields: [customerId], references: [id])
+  type             ReviewType @default(POST_COMPLETION)
+  overallRating    Int?
+  qualityRating    Int?
+  communicationRating Int?
+  timelinessRating Int?
+  cleanlinessRating Int?
+  privateFeedback  String?
+  testimonial      String?
+  isPublished      Boolean    @default(false)
+  unresolvedIssue  Boolean    @default(false)
+  issueDescription String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+model AuditLog {
+  id               String          @id @default(cuid())
+  serviceRequestId String?
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+  jobId            String?
+  job              Job?            @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId           String?
+  user             User?           @relation(fields: [userId], references: [id])
+  action           String
+  entityType       String
+  entityId         String
+  previousValue    Json?
+  newValue         Json?
+  description      String?
+  createdAt        DateTime        @default(now())
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  location  String?
+  content   String
+  rating    Int      @default(5)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Faq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
