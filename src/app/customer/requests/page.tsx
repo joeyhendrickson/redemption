@@ -14,8 +14,16 @@ export default async function CustomerRequestsPage() {
   if (!user) redirect("/login");
 
   const requests = await db.serviceRequest.findMany({
-    where: { customerId: user.id },
+    where: {
+      OR: [{ customerId: user.id }, { email: user.email }],
+    },
     orderBy: { createdAt: "desc" },
+    include: {
+      estimates: {
+        where: { status: "SENT" },
+        select: { id: true },
+      },
+    },
   });
 
   return (
@@ -26,15 +34,30 @@ export default async function CustomerRequestsPage() {
           <Link href="/#request-service" className="text-sm underline">New request</Link>
         </CardHeader>
         <CardContent className="space-y-3">
-          {requests.map((request) => (
-            <div key={request.id} className="rounded-lg border p-4">
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-medium">{request.title}</p>
-                <Badge variant="secondary">{REQUEST_STATUS_LABELS[request.status]}</Badge>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">{request.referenceNumber}</p>
-            </div>
-          ))}
+          {requests.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No requests yet. <Link href="/#request-service" className="underline">Submit a service request</Link>
+            </p>
+          ) : (
+            requests.map((request) => (
+              <Link
+                key={request.id}
+                href={`/customer/requests/${request.id}`}
+                className="block rounded-lg border p-4 transition hover:bg-muted/40"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-medium">{request.title}</p>
+                  <div className="flex items-center gap-2">
+                    {request.estimates.length > 0 ? (
+                      <Badge>Estimate ready</Badge>
+                    ) : null}
+                    <Badge variant="secondary">{REQUEST_STATUS_LABELS[request.status]}</Badge>
+                  </div>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">{request.referenceNumber}</p>
+              </Link>
+            ))
+          )}
         </CardContent>
       </Card>
     </PortalShell>

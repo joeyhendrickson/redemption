@@ -201,8 +201,8 @@ model SiteSettings {
   companyName           String   @default("Redemption Home Services")
   tagline               String   @default("Reliable repairs. Clear communication. Work completed with care.")
   logoUrl               String?
-  primaryColor          String   @default("#1e3a5f")
-  accentColor           String   @default("#c45c26")
+  primaryColor          String   @default("#000000")
+  accentColor           String   @default("#000000")
   phone                 String   @default("(614) 555-0199")
   email                 String   @default("hello@redemptionhomeservices.com")
   address               String   @default("Columbus, Ohio")
@@ -463,6 +463,8 @@ model Invoice {
   sentAt      DateTime?
   paidAt      DateTime?
   notes       String?
+  stripeCheckoutSessionId String?
+  stripePaymentIntentId   String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 }

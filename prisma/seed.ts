@@ -302,9 +302,14 @@ const categories = [
 async function main() {
   await prisma.siteSettings.upsert({
     where: { id: "default" },
-    update: {},
+    update: {
+      primaryColor: "#000000",
+      accentColor: "#000000",
+    },
     create: {
       id: "default",
+      primaryColor: "#000000",
+      accentColor: "#000000",
     },
   });
 
@@ -401,6 +406,41 @@ async function main() {
       location: "Westerville, OH",
       content:
         "We use Redemption for our punch-list repairs before listings. Dependable work every time.",
+      rating: 5,
+    },
+    {
+      name: "Dr. Fojas",
+      location: "Columbus, OH",
+      content:
+        "They handled our clinic renovation punch list with care and precision. Every detail was documented, and the team communicated clearly from start to finish.",
+      rating: 5,
+    },
+    {
+      name: "Sudhir Subey",
+      location: "Central Ohio",
+      content:
+        "Redemption made coordinating maintenance across multiple properties simple. Responsive scheduling, fair pricing, and quality work we could trust.",
+      rating: 5,
+    },
+    {
+      name: "Joey Hendrickson",
+      location: "Columbus, OH",
+      content:
+        "I wanted a service company that treats homeowners with respect — clear estimates, honest timelines, and work done right. Redemption delivers on all of it.",
+      rating: 5,
+    },
+    {
+      name: "Michael P.",
+      location: "Powell, OH",
+      content:
+        "From ceiling fan installs to exterior repairs, they've been our go-to handyman team. Always professional and easy to reach through the portal.",
+      rating: 5,
+    },
+    {
+      name: "Lisa K.",
+      location: "New Albany, OH",
+      content:
+        "They transformed our pre-listing repair list into a smooth process. The before-and-after photos and updates gave us complete confidence.",
       rating: 5,
     },
   ];

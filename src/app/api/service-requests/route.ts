@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { serviceRequestSchema } from "@/lib/validations";
 import { generateReferenceNumber, detectEmergency } from "@/lib/utils/helpers";
 import { sendEmail, serviceRequestConfirmationEmail } from "@/lib/email";
-import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "@/lib/constants";
+import { inferFileCategory, uploadFileRecord, validateUploadFile } from "@/lib/storage";
 
 export async function POST(request: Request) {
   try {
@@ -67,16 +67,17 @@ export async function POST(request: Request) {
 
     const files = formData.getAll("files") as File[];
     for (const file of files) {
-      if (!file.size) continue;
-      if (file.size > MAX_FILE_SIZE) {
-        return NextResponse.json({ error: `${file.name} exceeds the 10MB limit` }, { status: 400 });
-      }
-      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-        return NextResponse.json({ error: `${file.name} has an unsupported file type` }, { status: 400 });
+      const validation = validateUploadFile(file);
+      if (!validation.ok) {
+        return NextResponse.json({ error: validation.error }, { status: 400 });
       }
 
       const buffer = Buffer.from(await file.arrayBuffer());
-      const fileUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
+      const fileUrl = await uploadFileRecord({
+        folder: `service-requests/${serviceRequest.id}`,
+        file,
+        buffer,
+      });
 
       await db.file.create({
         data: {
@@ -85,11 +86,7 @@ export async function POST(request: Request) {
           fileUrl,
           fileSize: file.size,
           mimeType: file.type,
-          category: file.type.startsWith("video/")
-            ? "VIDEO"
-            : file.type === "application/pdf"
-              ? "PDF"
-              : "PHOTO",
+          category: inferFileCategory(file.type),
         },
       });
     }

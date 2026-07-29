@@ -22,7 +22,7 @@ async function getHomeData() {
         orderBy: { sortOrder: "asc" },
         take: 8,
       }),
-      db.testimonial.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 3 }),
+      db.testimonial.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
       db.faq.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 6 }),
     ]);
     return { categories, testimonials, faqs };
@@ -39,6 +39,27 @@ async function getHomeData() {
           name: "Sarah M.",
           location: "Columbus, OH",
           content: "Clear communication from start to finish. They repaired drywall and painted the room — it looks brand new.",
+          rating: 5,
+        },
+        {
+          name: "Dr. Fojas",
+          location: "Columbus, OH",
+          content:
+            "They handled our clinic renovation punch list with care and precision. Every detail was documented, and the team communicated clearly from start to finish.",
+          rating: 5,
+        },
+        {
+          name: "Sudhir Subey",
+          location: "Central Ohio",
+          content:
+            "Redemption made coordinating maintenance across multiple properties simple. Responsive scheduling, fair pricing, and quality work we could trust.",
+          rating: 5,
+        },
+        {
+          name: "Joey Hendrickson",
+          location: "Columbus, OH",
+          content:
+            "I wanted a service company that treats homeowners with respect — clear estimates, honest timelines, and work done right. Redemption delivers on all of it.",
           rating: 5,
         },
       ],
@@ -63,10 +84,7 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section
-        className="relative overflow-hidden text-white"
-        style={{ background: `linear-gradient(135deg, ${settings.primaryColor}, ${settings.accentColor})` }}
-      >
+      <section className="relative overflow-hidden bg-black text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-28">
           <div className="space-y-6">
             <p className="text-sm uppercase tracking-[0.2em] text-white/80">Columbus & Central Ohio</p>
@@ -111,7 +129,7 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-2">
-          <ServiceRequestForm categories={categoryOptions} accentColor={settings.accentColor} />
+          <ServiceRequestForm categories={categoryOptions} />
           <div className="space-y-8">
             <div>
               <h2 className="text-2xl font-semibold">How it works</h2>
@@ -123,10 +141,7 @@ export default async function HomePage() {
                   "Track progress, communicate, and review completed work in your portal.",
                 ].map((step, index) => (
                   <li key={step} className="flex gap-4">
-                    <span
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-                      style={{ backgroundColor: settings.primaryColor }}
-                    >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm font-semibold text-white">
                       {index + 1}
                     </span>
                     <span className="pt-1 text-muted-foreground">{step}</span>
@@ -174,11 +189,11 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <h2 className="text-3xl font-semibold">What customers say</h2>
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {testimonials.map((testimonial) => (
             <Card key={`${testimonial.name}-${testimonial.content.slice(0, 20)}`}>
               <CardContent className="pt-6">
-                <div className="mb-3 flex gap-1 text-amber-500">
+                <div className="mb-3 flex gap-1 text-foreground">
                   {Array.from({ length: testimonial.rating }).map((_, index) => (
                     <Star key={index} className="h-4 w-4 fill-current" />
                   ))}

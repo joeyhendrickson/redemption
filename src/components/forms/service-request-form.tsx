@@ -42,10 +42,8 @@ const STEPS = ["Contact", "Property & Service", "Details", "Review"];
 
 export function ServiceRequestForm({
   categories,
-  accentColor,
 }: {
   categories: CategoryOption[];
-  accentColor: string;
 }) {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -206,7 +204,7 @@ export function ServiceRequestForm({
           <p className="mt-4 text-sm text-muted-foreground">
             We&apos;ve sent a confirmation email and will review your request shortly.
           </p>
-          <Button className="mt-6" onClick={() => setShowAccountModal(true)} style={{ backgroundColor: accentColor }}>
+          <Button className="mt-6" onClick={() => setShowAccountModal(true)}>
             Create your free account
           </Button>
         </div>
@@ -530,11 +528,11 @@ export function ServiceRequestForm({
             Back
           </Button>
           {step < STEPS.length - 1 ? (
-            <Button type="button" onClick={nextStep} style={{ backgroundColor: accentColor }}>
+            <Button type="button" onClick={nextStep}>
               Continue
             </Button>
           ) : (
-            <Button type="submit" disabled={submitting} style={{ backgroundColor: accentColor }}>
+            <Button type="submit" disabled={submitting}>
               {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Submit Request
             </Button>

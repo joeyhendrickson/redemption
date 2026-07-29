@@ -63,5 +63,112 @@ export const contactSchema = z.object({
   message: z.string().min(10),
 });
 
+export const messageSchema = z
+  .object({
+    serviceRequestId: z.string().optional(),
+    jobId: z.string().optional(),
+    parentMessageId: z.string().optional(),
+    subject: z.string().optional(),
+    body: z.string().min(1, "Message is required"),
+    visibility: z.enum(["CUSTOMER", "CONTRACTOR", "INTERNAL", "ADMIN_CONTRACTOR"]).optional(),
+  })
+  .refine((data) => data.serviceRequestId || data.jobId || data.parentMessageId, {
+    message: "Link the message to a request, job, or existing thread",
+  });
+
+export type MessageInput = z.infer<typeof messageSchema>;
+
+export const estimateSchema = z.object({
+  serviceRequestId: z.string().min(1),
+  title: z.string().min(3),
+  description: z.string().optional(),
+  laborCost: z.coerce.number().min(0),
+  materialsCost: z.coerce.number().min(0),
+  validUntil: z.string().optional(),
+});
+
+export const estimateDecisionSchema = z.object({
+  note: z.string().optional(),
+});
+
+export type EstimateInput = z.infer<typeof estimateSchema>;
+
+export const assignContractorSchema = z.object({
+  contractorId: z.string().min(1),
+});
+
+export const taskSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  weight: z.coerce.number().int().min(1).max(100).optional(),
+  estimatedHours: z.coerce.number().min(0).optional(),
+  materialsRequired: z.string().optional(),
+});
+
+export const taskUpdateSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  status: z.enum(["PENDING", "IN_PROGRESS", "BLOCKED", "COMPLETED", "CANCELLED"]).optional(),
+  progressPercentage: z.coerce.number().int().min(0).max(100).optional(),
+  weight: z.coerce.number().int().min(1).max(100).optional(),
+  estimatedHours: z.coerce.number().min(0).optional(),
+  actualHours: z.coerce.number().min(0).optional(),
+  materialsRequired: z.string().optional(),
+  blockerReason: z.string().optional(),
+});
+
+export const jobUpdateSchema = z.object({
+  status: z.enum([
+    "DRAFT",
+    "UNASSIGNED",
+    "ASSIGNED",
+    "SCHEDULED",
+    "CONFIRMED",
+    "IN_PROGRESS",
+    "PAUSED",
+    "WAITING_ON_CUSTOMER",
+    "WAITING_ON_MATERIALS",
+    "CHANGE_APPROVAL_NEEDED",
+    "QUALITY_REVIEW",
+    "COMPLETED",
+    "CLOSED",
+    "CANCELLED",
+  ]).optional(),
+  scheduledStart: z.string().optional(),
+  scheduledEnd: z.string().optional(),
+  accessInstructions: z.string().optional(),
+  safetyNotes: z.string().optional(),
+  propertyNotes: z.string().optional(),
+  completionOverride: z.coerce.number().int().min(0).max(100).nullable().optional(),
+  completionOverrideReason: z.string().optional(),
+});
+
+const ratingSchema = z.coerce.number().int().min(1).max(5);
+
+export const reviewSchema = z.object({
+  jobId: z.string().min(1),
+  overallRating: ratingSchema,
+  qualityRating: ratingSchema.optional(),
+  communicationRating: ratingSchema.optional(),
+  timelinessRating: ratingSchema.optional(),
+  cleanlinessRating: ratingSchema.optional(),
+  privateFeedback: z.string().max(5000).optional(),
+  testimonial: z.string().max(2000).optional(),
+  unresolvedIssue: z.boolean().optional(),
+  issueDescription: z.string().max(5000).optional(),
+});
+
+export const reviewUpdateSchema = z.object({
+  isPublished: z.boolean().optional(),
+});
+
+export const invoiceCreateSchema = z.object({
+  jobId: z.string().min(1),
+  subtotal: z.coerce.number().min(0),
+  tax: z.coerce.number().min(0).optional(),
+  notes: z.string().optional(),
+  dueDate: z.string().optional(),
+});
+
 export type ServiceRequestInput = z.infer<typeof serviceRequestSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;

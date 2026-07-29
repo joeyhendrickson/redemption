@@ -21,10 +21,7 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-sm font-bold text-white"
-            style={{ backgroundColor: settings.primaryColor }}
-          >
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black text-sm font-bold text-white">
             RH
           </div>
           <div className="hidden sm:block">
@@ -47,7 +44,7 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
 
         <div className="hidden items-center gap-3 md:flex">
           <ButtonLink variant="ghost" href="/login">Customer Login</ButtonLink>
-          <ButtonLink href="/#request-service" style={{ backgroundColor: settings.accentColor }}>
+          <ButtonLink href="/#request-service" className="bg-black text-white hover:bg-black/90">
             Request Service
           </ButtonLink>
         </div>
@@ -68,7 +65,7 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
               <Link href="/login" className="text-lg font-medium">
                 Customer Login
               </Link>
-              <ButtonLink href="/#request-service" style={{ backgroundColor: settings.accentColor }}>
+              <ButtonLink href="/#request-service" className="bg-black text-white hover:bg-black/90">
                 Request Service
               </ButtonLink>
             </div>

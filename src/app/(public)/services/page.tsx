@@ -61,7 +61,7 @@ export default async function ServicesPage() {
                       {service.startingPrice ? (
                         <p className="text-sm font-medium">Starting at {service.startingPrice}</p>
                       ) : null}
-                      <ButtonLink href="/#request-service" style={{ backgroundColor: settings.accentColor }}>
+                      <ButtonLink href="/#request-service" className="bg-black text-white hover:bg-black/90">
                         Request Service
                       </ButtonLink>
                     </CardContent>

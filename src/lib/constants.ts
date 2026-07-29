@@ -83,6 +83,29 @@ export const REFERRAL_SOURCES = [
   "Other",
 ];
 
+export const MESSAGE_VISIBILITY_LABELS: Record<string, string> = {
+  CUSTOMER: "Customer visible",
+  CONTRACTOR: "Contractor visible",
+  INTERNAL: "Internal only",
+  ADMIN_CONTRACTOR: "Admin & contractor",
+};
+
+export const ESTIMATE_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "Draft",
+  SENT: "Sent",
+  APPROVED: "Approved",
+  DECLINED: "Declined",
+  EXPIRED: "Expired",
+};
+
+export const TASK_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Pending",
+  IN_PROGRESS: "In Progress",
+  BLOCKED: "Blocked",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+};
+
 export const ALLOWED_FILE_TYPES = [
   "image/jpeg",
   "image/png",

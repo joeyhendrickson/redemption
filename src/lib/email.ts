@@ -58,3 +58,69 @@ export function accountVerificationEmail({ name, verifyUrl }: { name: string; ve
     `,
   };
 }
+
+export function jobCompletedReviewEmail({
+  name,
+  jobReference,
+  reviewUrl,
+}: {
+  name: string;
+  jobReference: string;
+  reviewUrl: string;
+}) {
+  return {
+    subject: `Job completed — share your feedback (${jobReference})`,
+    html: `
+      <h1>Your job is complete, ${name}!</h1>
+      <p>Job <strong>${jobReference}</strong> has been marked complete.</p>
+      <p>Please take a moment to review your experience and let us know if anything still needs attention.</p>
+      <p><a href="${reviewUrl}">Leave your review</a></p>
+      <p>— Redemption Home Services</p>
+    `,
+  };
+}
+
+export function reviewIssueAlertEmail({
+  jobReference,
+  customerName,
+  issueDescription,
+  adminUrl,
+}: {
+  jobReference: string;
+  customerName: string;
+  issueDescription: string;
+  adminUrl: string;
+}) {
+  return {
+    subject: `Unresolved issue reported — ${jobReference}`,
+    html: `
+      <h1>Customer reported an unresolved issue</h1>
+      <p><strong>Job:</strong> ${jobReference}</p>
+      <p><strong>Customer:</strong> ${customerName}</p>
+      <p><strong>Issue:</strong> ${issueDescription}</p>
+      <p><a href="${adminUrl}">View job in admin portal</a></p>
+    `,
+  };
+}
+
+export function invoiceReadyEmail({
+  name,
+  invoiceNumber,
+  total,
+  payUrl,
+}: {
+  name: string;
+  invoiceNumber: string;
+  total: string;
+  payUrl: string;
+}) {
+  return {
+    subject: `Invoice ready — ${invoiceNumber}`,
+    html: `
+      <h1>Invoice ready, ${name}</h1>
+      <p>Invoice <strong>${invoiceNumber}</strong> for <strong>${total}</strong> is ready.</p>
+      <p><a href="${payUrl}">View and pay invoice</a></p>
+      <p>— Redemption Home Services</p>
+    `,
+  };
+}
