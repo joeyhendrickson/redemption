@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@/generated/prisma/client";
 import { createClient } from "@supabase/supabase-js";
 import { db } from "@/lib/db";
 import { registerSchema } from "@/lib/validations";
-import { sendEmail, accountVerificationEmail } from "@/lib/email";
+import { deliverAccountVerificationEmail } from "@/lib/auth-verification";
 
 function getServiceClient() {
   return createClient(
@@ -11,7 +12,23 @@ function getServiceClient() {
   );
 }
 
+function getDatabaseErrorMessage(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "ECONNREFUSED") {
+    return "Database connection failed. Start the local database with npm run db:dev, or set DATABASE_URL in .env.local.";
+  }
+
+  if (error instanceof Error && /connection terminated|ECONNREFUSED|DATABASE_URL is not set/i.test(error.message)) {
+    return "Database connection failed. Start the local database with npm run db:dev, or set DATABASE_URL in .env.local.";
+  }
+
+  return null;
+}
+
 export async function POST(request: Request) {
+  let createdAuthUserId: string | null = null;
+  let createdDbUserId: string | null = null;
+  const supabase = getServiceClient();
+
   try {
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
@@ -20,15 +37,15 @@ export async function POST(request: Request) {
     }
 
     const { firstName, lastName, email, phone, password, serviceRequestId } = parsed.data;
+    const normalizedEmail = email.toLowerCase();
 
-    const existingUser = await db.user.findUnique({ where: { email } });
+    const existingUser = await db.user.findUnique({ where: { email: normalizedEmail } });
     if (existingUser) {
       return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
     }
 
-    const supabase = getServiceClient();
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
+      email: normalizedEmail,
       password,
       email_confirm: false,
       user_metadata: { firstName, lastName, role: "CUSTOMER" },
@@ -38,10 +55,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: authError?.message ?? "Registration failed" }, { status: 400 });
     }
 
+    createdAuthUserId = authData.user.id;
+
     const user = await db.user.create({
       data: {
         supabaseId: authData.user.id,
-        email,
+        email: normalizedEmail,
         firstName,
         lastName,
         phone,
@@ -50,20 +69,45 @@ export async function POST(request: Request) {
       },
     });
 
+    createdDbUserId = user.id;
+
     if (serviceRequestId) {
       await db.serviceRequest.updateMany({
-        where: { id: serviceRequestId, email },
+        where: { id: serviceRequestId, email: normalizedEmail },
         data: { customerId: user.id },
       });
     }
 
-    const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/login?verify=1`;
-    const emailContent = accountVerificationEmail({ name: firstName, verifyUrl });
-    await sendEmail({ to: email, subject: emailContent.subject, html: emailContent.html });
+    const emailDelivery = await deliverAccountVerificationEmail({
+      to: normalizedEmail,
+      name: firstName,
+      request,
+    });
 
-    return NextResponse.json({ success: true, userId: user.id });
+    return NextResponse.json({
+      success: true,
+      userId: user.id,
+      emailSent: true,
+      emailProvider: emailDelivery.provider,
+    });
   } catch (error) {
+    if (createdDbUserId) {
+      await db.user.delete({ where: { id: createdDbUserId } }).catch(() => undefined);
+    }
+
+    if (createdAuthUserId) {
+      await supabase.auth.admin.deleteUser(createdAuthUserId).catch(() => undefined);
+    }
+
     console.error(error);
-    return NextResponse.json({ error: "Registration failed" }, { status: 500 });
+    const databaseMessage = getDatabaseErrorMessage(error);
+    if (databaseMessage) {
+      return NextResponse.json({ error: databaseMessage }, { status: 503 });
+    }
+
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Registration failed" },
+      { status: 500 },
+    );
   }
 }

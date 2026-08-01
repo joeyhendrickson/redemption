@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
@@ -91,15 +90,6 @@ export function ServiceRequestForm({
   const urgencyLevel = watch("urgencyLevel");
   const safetyConcern = watch("safetyConcern");
   const description = watch("description");
-
-  const showEmergencyAlert = useMemo(() => {
-    const lower = description?.toLowerCase() ?? "";
-    return (
-      safetyConcern ||
-      urgencyLevel === "EMERGENCY_REVIEW" ||
-      ["fire", "gas leak", "sparks", "smoke", "collapse"].some((term) => lower.includes(term))
-    );
-  }, [description, safetyConcern, urgencyLevel]);
 
   const conditionalFields = useMemo(() => {
     const fields: { key: string; label: string; type: "text" | "boolean" | "select"; options?: string[] }[] = [];
@@ -204,7 +194,7 @@ export function ServiceRequestForm({
           <p className="mt-4 text-sm text-muted-foreground">
             We&apos;ve sent a confirmation email and will review your request shortly.
           </p>
-          <Button className="mt-6" onClick={() => setShowAccountModal(true)}>
+          <Button className="mt-6" variant="cta" onClick={() => setShowAccountModal(true)}>
             Create your free account
           </Button>
         </div>
@@ -223,9 +213,10 @@ export function ServiceRequestForm({
   }
 
   return (
-    <div id="request-service" className="rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+    <div id="request-service" className="rounded-2xl border border-gold/20 bg-card p-6 shadow-sm ring-1 ring-gold/10 sm:p-8">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold">Request Service</h2>
+        <div className="mt-2 h-1 w-14 rounded-full bg-gold" />
         <p className="mt-1 text-sm text-muted-foreground">
           Tell us about your project. Most requests take about 5 minutes.
         </p>
@@ -237,17 +228,6 @@ export function ServiceRequestForm({
           <Progress value={((step + 1) / STEPS.length) * 100} />
         </div>
       </div>
-
-      {showEmergencyAlert && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Emergency safety notice</AlertTitle>
-          <AlertDescription>
-            If you are experiencing fire, gas leak, major electrical danger, structural collapse, or another
-            life-threatening emergency, call 911 immediately. We are not an emergency service provider.
-          </AlertDescription>
-        </Alert>
-      )}
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {step === 0 && (
@@ -528,11 +508,11 @@ export function ServiceRequestForm({
             Back
           </Button>
           {step < STEPS.length - 1 ? (
-            <Button type="button" onClick={nextStep}>
+            <Button type="button" variant="cta" onClick={nextStep}>
               Continue
             </Button>
           ) : (
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" variant="cta" disabled={submitting}>
               {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Submit Request
             </Button>

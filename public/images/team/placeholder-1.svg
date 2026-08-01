@@ -1,0 +1,7 @@
+<svg viewBox="0 0 400 500" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Team member photo placeholder">
+  <rect width="400" height="500" fill="#F5F5F5"/>
+  <rect x="24" y="24" width="352" height="452" rx="16" fill="#0A0A0A" fill-opacity="0.04" stroke="#C9A227" stroke-width="2" stroke-dasharray="8 8"/>
+  <circle cx="200" cy="170" r="72" fill="#E5E5E5" stroke="#C9A227" stroke-width="2"/>
+  <path d="M92 430C110 340 150 300 200 300C250 300 290 340 308 430" fill="#E5E5E5" stroke="#C9A227" stroke-width="2"/>
+  <text x="200" y="470" text-anchor="middle" fill="#737373" font-family="system-ui, sans-serif" font-size="18">Photo placeholder</text>
+</svg>

@@ -11,6 +11,7 @@ import {
 import { ButtonLink } from "@/components/ui/button-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ServiceRequestForm } from "@/components/forms/service-request-form";
+import { SERVICE_CATALOG, toDisplayServiceCategories } from "@/data/service-catalog";
 import { getSiteSettings } from "@/lib/site-settings";
 import { db } from "@/lib/db";
 
@@ -23,17 +24,16 @@ async function getHomeData() {
         take: 8,
       }),
       db.testimonial.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
-      db.faq.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 6 }),
+      db.faq.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 10 }),
     ]);
     return { categories, testimonials, faqs };
   } catch {
+    const fallbackCategories = toDisplayServiceCategories().slice(0, 8);
     return {
-      categories: [
-        { name: "General Handyman", slug: "general-handyman" },
-        { name: "Drywall & Painting", slug: "drywall-painting" },
-        { name: "Plumbing", slug: "plumbing" },
-        { name: "Property Services", slug: "property-services" },
-      ],
+      categories: fallbackCategories.map((category) => ({
+        name: category.name,
+        slug: category.slug,
+      })),
       testimonials: [
         {
           name: "Sarah M.",
@@ -68,6 +68,25 @@ async function getHomeData() {
           question: "What areas do you serve?",
           answer: "We serve Columbus, Ohio, and the surrounding Central Ohio communities.",
         },
+        {
+          question: "How quickly will I hear back after I submit a request?",
+          answer:
+            "Most requests receive an initial response within one business day. Emergency Review requests are prioritized for faster review.",
+        },
+        {
+          question: "When will my service be scheduled?",
+          answer:
+            "Scheduling begins after we review your request and confirm scope. We work with you to find an appointment that fits your availability and our service hours.",
+        },
+        {
+          question: "How long does a typical repair visit take?",
+          answer:
+            "Small repairs may take one to three hours. Larger projects may require multiple visits. We provide a clearer estimate once we review your request.",
+        },
+        {
+          question: "What are your service hours?",
+          answer: "Mon–Fri 3pm–9pm and Sat–Sun 9am–9pm.",
+        },
       ],
     };
   }
@@ -87,7 +106,7 @@ export default async function HomePage() {
       <section className="relative overflow-hidden bg-black text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-28">
           <div className="space-y-6">
-            <p className="text-sm uppercase tracking-[0.2em] text-white/80">Columbus & Central Ohio</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-gold/90">Columbus & Central Ohio</p>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{settings.companyName}</h1>
             <p className="text-lg text-white/90">{settings.tagline}</p>
             <p className="max-w-xl text-white/80">
@@ -95,7 +114,7 @@ export default async function HomePage() {
               services with clear communication at every step.
             </p>
             <div className="flex flex-wrap gap-3">
-              <ButtonLink size="lg" variant="secondary" href="#request-service">
+              <ButtonLink size="lg" variant="cta" href="#request-service">
                 Request Service
               </ButtonLink>
               <ButtonLink
@@ -141,7 +160,7 @@ export default async function HomePage() {
                   "Track progress, communicate, and review completed work in your portal.",
                 ].map((step, index) => (
                   <li key={step} className="flex gap-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-sm font-semibold text-white">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold text-sm font-semibold text-gold-foreground">
                       {index + 1}
                     </span>
                     <span className="pt-1 text-muted-foreground">{step}</span>
@@ -152,7 +171,6 @@ export default async function HomePage() {
             <div className="rounded-2xl border bg-muted/20 p-6">
               <h3 className="font-semibold">Service area</h3>
               <p className="mt-2 text-sm text-muted-foreground">{settings.serviceArea}</p>
-              <p className="mt-4 text-sm text-muted-foreground">{settings.emergencyDisclaimer}</p>
             </div>
           </div>
         </div>
@@ -193,7 +211,7 @@ export default async function HomePage() {
           {testimonials.map((testimonial) => (
             <Card key={`${testimonial.name}-${testimonial.content.slice(0, 20)}`}>
               <CardContent className="pt-6">
-                <div className="mb-3 flex gap-1 text-foreground">
+                <div className="mb-3 flex gap-1 text-gold">
                   {Array.from({ length: testimonial.rating }).map((_, index) => (
                     <Star key={index} className="h-4 w-4 fill-current" />
                   ))}

@@ -87,10 +87,9 @@ export default function ContactPage({
             <CardContent className="space-y-2 text-sm">
               <p>{settings.serviceArea}</p>
               <p className="text-muted-foreground">{settings.businessHours}</p>
-              <p className="text-muted-foreground">{settings.emergencyDisclaimer}</p>
             </CardContent>
           </Card>
-          <ButtonLink href="/#request-service" className="w-full">
+          <ButtonLink variant="cta" href="/#request-service" className="w-full">
             Request Service
           </ButtonLink>
         </div>
@@ -120,7 +119,7 @@ export default function ContactPage({
             <Label htmlFor="message">Message</Label>
             <Textarea id="message" rows={6} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} required />
           </div>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" variant="cta" disabled={loading}>
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Send Message
           </Button>

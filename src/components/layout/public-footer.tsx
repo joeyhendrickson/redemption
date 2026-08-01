@@ -47,7 +47,12 @@ export function PublicFooter({ settings }: { settings: SiteSettings }) {
         </div>
       </div>
       <div className="border-t py-4 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} {settings.companyName}. All rights reserved.
+        <p>© {new Date().getFullYear()} {settings.companyName}. All rights reserved.</p>
+        <p className="mt-2">
+          <Link href="/login?redirect=/admin" className="underline underline-offset-4 hover:text-foreground">
+            Admin Login
+          </Link>
+        </p>
       </div>
     </footer>
   );

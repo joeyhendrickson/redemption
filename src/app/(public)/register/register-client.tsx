@@ -35,7 +35,7 @@ export default function RegisterPageClient() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Registration failed");
       toast.success("Account created. Please verify your email, then sign in.");
-      router.push("/login");
+      router.push(`/login?verify=sent&email=${encodeURIComponent(form.email)}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Registration failed.");
     } finally {

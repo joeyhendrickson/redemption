@@ -1,5 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Phone, Mail, Menu } from "lucide-react";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { ButtonLink } from "@/components/ui/button-link";
 import {
   Sheet,
@@ -21,9 +23,17 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black text-sm font-bold text-white">
-            RH
-          </div>
+          {settings.logoUrl ? (
+            <Image
+              src={settings.logoUrl}
+              alt={`${settings.companyName} logo`}
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-lg object-contain"
+            />
+          ) : (
+            <LogoMark />
+          )}
           <div className="hidden sm:block">
             <p className="font-semibold leading-tight">{settings.companyName}</p>
             <p className="text-xs text-muted-foreground">{settings.tagline}</p>
@@ -44,7 +54,7 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
 
         <div className="hidden items-center gap-3 md:flex">
           <ButtonLink variant="ghost" href="/login">Customer Login</ButtonLink>
-          <ButtonLink href="/#request-service" className="bg-black text-white hover:bg-black/90">
+          <ButtonLink variant="cta" href="/#request-service">
             Request Service
           </ButtonLink>
         </div>
@@ -65,7 +75,7 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
               <Link href="/login" className="text-lg font-medium">
                 Customer Login
               </Link>
-              <ButtonLink href="/#request-service" className="bg-black text-white hover:bg-black/90">
+              <ButtonLink variant="cta" href="/#request-service">
                 Request Service
               </ButtonLink>
             </div>
@@ -83,7 +93,6 @@ export function PublicHeader({ settings }: { settings: SiteSettings }) {
             <Mail className="h-3.5 w-3.5" />
             {settings.email}
           </span>
-          <span>Serving {settings.serviceArea}</span>
         </div>
       </div>
     </header>

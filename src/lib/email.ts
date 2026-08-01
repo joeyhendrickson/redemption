@@ -18,7 +18,10 @@ export async function sendEmail({
 
   const from = process.env.EMAIL_FROM ?? "Redemption Home Services <noreply@redemptionhomeservices.com>";
 
-  await resend.emails.send({ from, to, subject, html });
+  const { error } = await resend.emails.send({ from, to, subject, html });
+  if (error) {
+    throw new Error(error.message);
+  }
   return { success: true };
 }
 
@@ -52,8 +55,11 @@ export function accountVerificationEmail({ name, verifyUrl }: { name: string; ve
     subject: "Verify your Redemption Home Services account",
     html: `
       <h1>Welcome, ${name}!</h1>
-      <p>Please verify your email to access your customer portal.</p>
-      <p><a href="${verifyUrl}">Verify email address</a></p>
+      <p>Thanks for creating your customer account. Click the button below to verify your email and access your portal.</p>
+      <p><a href="${verifyUrl}" style="display:inline-block;padding:12px 20px;background:#000;color:#fff;text-decoration:none;border-radius:6px;">Verify email address</a></p>
+      <p>If the button does not work, copy and paste this link into your browser:</p>
+      <p><a href="${verifyUrl}">${verifyUrl}</a></p>
+      <p>After verifying, return to the site and sign in with your email and password.</p>
       <p>— Redemption Home Services</p>
     `,
   };

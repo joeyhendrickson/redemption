@@ -1,4 +1,5 @@
 import { getSiteSettings } from "@/lib/site-settings";
+import { TeamProfilesSection } from "@/components/public/team-profiles-section";
 
 export const metadata = { title: "About | Redemption Home Services" };
 
@@ -13,27 +14,28 @@ export default async function AboutPage() {
       <div className="prose prose-neutral mt-10 max-w-none space-y-8 dark:prose-invert">
         <section>
           <h2 className="text-2xl font-semibold">Our Story</h2>
-          <p className="mt-3 text-muted-foreground">{settings.aboutStory}</p>
+          <p className="mt-3 whitespace-pre-line text-muted-foreground">{settings.aboutStory}</p>
         </section>
         <section>
           <h2 className="text-2xl font-semibold">Mission</h2>
-          <p className="mt-3 text-muted-foreground">{settings.mission}</p>
+          <p className="mt-3 whitespace-pre-line text-muted-foreground">{settings.mission}</p>
         </section>
         <section>
           <h2 className="text-2xl font-semibold">Values</h2>
-          <p className="mt-3 text-muted-foreground">{settings.values}</p>
+          <p className="mt-3 whitespace-pre-line text-muted-foreground">{settings.values}</p>
         </section>
         <section>
           <h2 className="text-2xl font-semibold">Service Philosophy</h2>
-          <p className="mt-3 text-muted-foreground">{settings.servicePhilosophy}</p>
+          <p className="mt-3 whitespace-pre-line text-muted-foreground">{settings.servicePhilosophy}</p>
         </section>
         <section>
           <h2 className="text-2xl font-semibold">Professional Standards</h2>
-          <p className="mt-3 text-muted-foreground">{settings.professionalStandards}</p>
+          <p className="mt-3 whitespace-pre-line text-muted-foreground">{settings.professionalStandards}</p>
         </section>
+        <TeamProfilesSection />
         <section>
           <h2 className="text-2xl font-semibold">Service Area</h2>
-          <p className="mt-3 text-muted-foreground">{settings.serviceArea}</p>
+          <p className="mt-3 whitespace-pre-line text-muted-foreground">{settings.serviceArea}</p>
         </section>
         {settings.licensingLanguage ? (
           <section>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { ButtonLink } from "@/components/ui/button-link";
 import type { UserRole } from "@/generated/prisma/client";
 
@@ -46,9 +47,16 @@ export function PortalShell({
     <div className="min-h-screen bg-muted/20">
       <header className="border-b bg-background">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div>
-            <Link href="/" className="text-sm text-muted-foreground">Redemption Home Services</Link>
-            <p className="font-semibold">{title}</p>
+          <div className="flex items-center gap-3">
+            <Link href="/" className="shrink-0">
+              <LogoMark className="h-9 w-9" />
+            </Link>
+            <div>
+              <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
+                Redemption Home Services
+              </Link>
+              <p className="font-semibold">{title}</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-muted-foreground sm:inline">{userName}</span>

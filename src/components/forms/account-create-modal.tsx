@@ -50,7 +50,7 @@ export function AccountCreateModal({
       if (!response.ok) throw new Error(result.error ?? "Registration failed");
       toast.success("Account created. Check your email to verify your account.");
       onOpenChange(false);
-      router.push("/login?registered=1");
+      router.push(`/login?verify=sent&email=${encodeURIComponent(form.email)}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Registration failed.");
     } finally {

@@ -1,320 +1,44 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { SERVICE_CATALOG } from "../src/data/service-catalog";
+import { resolveDatabaseUrl } from "../src/lib/database-url";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const adapter = new PrismaPg({ connectionString: resolveDatabaseUrl(process.env.DATABASE_URL) });
 const prisma = new PrismaClient({ adapter });
-
-const categories = [
-  {
-    name: "General Handyman",
-    slug: "general-handyman",
-    description: "Everyday repairs, installations, and honey-do list projects.",
-    services: [
-      "General home repairs",
-      "Honey-do lists",
-      "Furniture assembly",
-      "TV mounting",
-      "Shelf installation",
-      "Picture and mirror hanging",
-      "Ceiling fan installation",
-      "Door adjustments",
-      "Cabinet hardware installation",
-      "Mailbox installation",
-      "Weatherstripping",
-      "Baby-proofing",
-      "Senior home safety modifications",
-    ],
-  },
-  {
-    name: "Carpentry",
-    slug: "carpentry",
-    description: "Trim, doors, decks, fences, and custom woodwork.",
-    services: [
-      "Trim installation",
-      "Crown molding",
-      "Baseboards",
-      "Interior doors",
-      "Exterior doors",
-      "Door repair",
-      "Deck repair",
-      "Fence repair",
-      "Custom shelving",
-      "Closet organization systems",
-      "Wood rot repair",
-    ],
-  },
-  {
-    name: "Drywall & Painting",
-    slug: "drywall-painting",
-    description: "Patching, texture matching, and interior/exterior painting.",
-    services: [
-      "Drywall patching",
-      "Hole repair",
-      "Texture matching",
-      "Interior painting",
-      "Exterior painting",
-      "Trim painting",
-      "Cabinet painting",
-      "Touch-up painting",
-      "Caulking",
-      "Popcorn ceiling repair",
-    ],
-  },
-  {
-    name: "Flooring",
-    slug: "flooring",
-    description: "Repairs and installation for common residential flooring.",
-    services: [
-      "LVP installation",
-      "Laminate flooring",
-      "Hardwood repair",
-      "Tile replacement",
-      "Grout repair",
-      "Baseboard installation",
-      "Floor transitions",
-    ],
-  },
-  {
-    name: "Kitchen & Bathroom",
-    slug: "kitchen-bathroom",
-    description: "Fixture replacements and minor kitchen and bath updates.",
-    services: [
-      "Faucet replacement",
-      "Garbage disposal replacement",
-      "Sink installation",
-      "Toilet repair",
-      "Toilet replacement",
-      "Vanity installation",
-      "Bathroom hardware",
-      "Shower door installation",
-      "Backsplash installation",
-      "Cabinet installation",
-    ],
-  },
-  {
-    name: "Electrical (Handyman Scope)",
-    slug: "electrical",
-    description: "Non-permitted fixture replacements and smart device installs.",
-    services: [
-      "Light fixture replacement",
-      "Ceiling fan installation",
-      "Switch replacement",
-      "Outlet replacement",
-      "GFCI installation",
-      "Smart switch installation",
-      "Smart thermostat installation",
-      "Smoke detector replacement",
-      "Ring doorbell installation",
-      "Security camera installation",
-    ],
-  },
-  {
-    name: "Plumbing",
-    slug: "plumbing",
-    description: "Minor plumbing repairs within handyman scope.",
-    services: [
-      "Faucet leaks",
-      "Toilet repairs",
-      "Garbage disposal troubleshooting",
-      "Drain replacement",
-      "Shower head installation",
-      "Hose bib replacement",
-      "Minor plumbing repairs",
-    ],
-  },
-  {
-    name: "HVAC Services",
-    slug: "hvac",
-    description: "Basic troubleshooting, maintenance, and thermostat services.",
-    services: [
-      "A/C troubleshooting",
-      "Basic A/C repair",
-      "Thermostat replacement",
-      "Smart thermostat installation",
-      "Air filter replacement",
-      "Furnace troubleshooting",
-      "Vent replacement",
-      "Preventative HVAC maintenance",
-      "Condenser cleaning",
-      "Airflow diagnostics",
-    ],
-  },
-  {
-    name: "Home Security",
-    slug: "home-security",
-    description: "Locks, smart locks, and security hardware upgrades.",
-    services: [
-      "Lock repair",
-      "Deadbolt installation",
-      "Smart lock installation",
-      "Door closer installation",
-      "Security camera installation",
-      "Video doorbell installation",
-      "Keypad lock installation",
-      "Home security hardware upgrades",
-    ],
-  },
-  {
-    name: "Window Treatments",
-    slug: "window-treatments",
-    description: "Curtain, blind, shade, and shutter installation.",
-    services: [
-      "Curtain installation",
-      "Curtain rod installation",
-      "Blinds installation",
-      "Shades installation",
-      "Plantation shutter installation",
-      "Window hardware repair",
-    ],
-  },
-  {
-    name: "Outdoor Services",
-    slug: "outdoor-services",
-    description: "Exterior cleaning, caulking, and minor repairs.",
-    services: [
-      "Pressure washing",
-      "House washing",
-      "Driveway cleaning",
-      "Sidewalk cleaning",
-      "Patio cleaning",
-      "Deck cleaning",
-      "Fence washing",
-      "Gutter cleaning",
-      "Downspout cleaning",
-      "Exterior caulking",
-      "Exterior trim repair",
-    ],
-  },
-  {
-    name: "Lawn & Property Maintenance",
-    slug: "lawn-property",
-    description: "Yard cleanup, trimming, and storm debris removal.",
-    services: [
-      "Overgrown lawn cleanup",
-      "Brush removal",
-      "Yard cleanup",
-      "Mulching",
-      "Weed removal",
-      "Shrub trimming",
-      "Hedge trimming",
-      "Leaf cleanup",
-      "Small tree trimming",
-      "Storm debris cleanup",
-      "Property cleanouts",
-    ],
-  },
-  {
-    name: "Hot Tub Services",
-    slug: "hot-tub",
-    description: "Moving, installation, and site preparation assistance.",
-    services: [
-      "Hot tub moving",
-      "Hot tub relocation",
-      "Hot tub installation",
-      "Hot tub removal",
-      "Spa pad preparation",
-      "Electrical coordination",
-      "Delivery coordination",
-      "Hot tub site preparation",
-      "Hot tub cover installation",
-      "Hot tub maintenance assistance",
-    ],
-  },
-  {
-    name: "Assembly & Installation",
-    slug: "assembly-installation",
-    description: "Large item assembly and outdoor structure setup.",
-    services: [
-      "Gazebo assembly",
-      "Pergola assembly",
-      "Playset assembly",
-      "Basketball hoop installation",
-      "Grill assembly",
-      "Shed assembly",
-      "Closet systems",
-      "Garage storage systems",
-      "Storage racks",
-      "Fitness equipment assembly",
-    ],
-  },
-  {
-    name: "Smart Home",
-    slug: "smart-home",
-    description: "Smart device setup and home automation installs.",
-    services: [
-      "Smart locks",
-      "Smart thermostats",
-      "Smart lighting",
-      "Smart garage door openers",
-      "Wi-Fi device setup",
-      "Home automation installation",
-      "Security camera systems",
-      "Smart doorbells",
-    ],
-  },
-  {
-    name: "Seasonal Services",
-    slug: "seasonal",
-    description: "Seasonal maintenance and holiday lighting services.",
-    services: [
-      "Holiday lighting installation",
-      "Holiday lighting removal",
-      "Winterization",
-      "Spring home maintenance",
-      "Fall maintenance",
-      "Storm preparation",
-      "Ice dam prevention",
-      "Weather sealing",
-    ],
-  },
-  {
-    name: "Property Services",
-    slug: "property-services",
-    description: "Rental, turnover, punch-list, and investor property work.",
-    services: [
-      "Rental property maintenance",
-      "Airbnb turnover repairs",
-      "Move-in repairs",
-      "Move-out repairs",
-      "Real estate punch lists",
-      "Home inspection repairs",
-      "Property preservation",
-      "Investor property maintenance",
-    ],
-  },
-  {
-    name: "Emergency Services",
-    slug: "emergency-services",
-    description: "Same-day and urgent repair assistance when available.",
-    services: [
-      "Emergency home repairs",
-      "Storm damage response",
-      "Broken door repair",
-      "Lock replacement",
-      "Water damage mitigation assistance",
-      "Temporary board-up services",
-      "Same-day handyman service",
-    ],
-  },
-];
 
 async function main() {
   await prisma.siteSettings.upsert({
     where: { id: "default" },
     update: {
       primaryColor: "#000000",
-      accentColor: "#000000",
+      accentColor: "#C9A227",
+      emergencyDisclaimer: "",
+      phone: "(614) 747-1926",
+      businessHours: "Mon-Fri 3pm-9pm, Sat-Sun 9am-9pm",
+      tagline: "Homes repaired, fixed, and redeemed with care.",
+      aboutStory:
+        "Redemption Home Services was founded on a simple conviction: every home is worth caring for, and every neighbor deserves to be treated with dignity. Our name reflects what we believe restoration should look like—not merely fixing what is broken, but renewing peace, order, and confidence in the places where families live, work, and gather.\n\nWe began serving Columbus and Central Ohio because this is our community. The homes here hold stories, memories, and responsibility. We do not take that lightly. Whether we are repairing a rental between tenants or helping a longtime homeowner with a punch list, we approach each job as stewards—entrusted with someone else's space and called to leave it better than we found it.\n\nThat spirit of service guides everything we do. We are grateful for the trust our neighbors place in us, and we work each day to earn it again.",
+      mission:
+        "To restore homes and renew trust—serving our neighbors with skilled work, honest communication, and a heart for what is right.",
+      values:
+        "Stewardship — We treat every property as a sacred trust, caring for it as if it were our own.\n\nIntegrity — We speak truthfully, quote fairly, and keep our word—even when it is inconvenient.\n\nHumility — We listen first, admit when we do not know, and pursue the right solution, not the easiest one.\n\nCompassion — We remember that home problems carry real stress, and we respond with patience, respect, and kindness.\n\nExcellence — We pursue quality not for applause, but because worthy work honors the people we serve.",
+      servicePhilosophy:
+        "We believe good service begins with presence: showing up when promised, treating people with dignity, and working as if every home matters—because it does. We listen before we recommend, explain options in plain language, and never pressure a homeowner into work they do not need.\n\nWe protect your property while we work, communicate proactively if plans change, and leave every space cleaner than we found it. Our goal is not only to fix what is broken, but to bring peace of mind back to the household. Every visit is an opportunity to serve—to do good work with a good spirit, and to treat our neighbors the way we would want to be treated.",
+      professionalStandards:
+        "We arrive on time, prepared, and ready to work. Our team communicates clearly from estimate through completion, documents work thoroughly, and stands behind our craftsmanship. We follow safety practices, respect your home and schedule, and address concerns promptly and honestly.\n\nWe hold ourselves to a standard of character as well as skill—because how the work is done matters as much as the result. Dependability, transparency, and respect are not extras on our checklist; they are the foundation of every job we take on.",
+      serviceArea: "Columbus and Central Ohio",
     },
     create: {
       id: "default",
       primaryColor: "#000000",
-      accentColor: "#000000",
+      accentColor: "#C9A227",
+      phone: "(614) 747-1926",
     },
   });
 
   let categoryOrder = 0;
-  for (const category of categories) {
+  for (const category of SERVICE_CATALOG) {
     const createdCategory = await prisma.serviceCategory.upsert({
       where: { slug: category.slug },
       update: {
@@ -363,28 +87,58 @@ async function main() {
         "We serve Columbus, Ohio, and the surrounding Central Ohio communities. Contact us to confirm availability for your address.",
     },
     {
+      question: "How quickly will I hear back after I submit a request?",
+      answer:
+        "Most requests receive an initial response within one business day. Emergency Review requests are prioritized for faster review, but response times can vary based on request volume and project details.",
+    },
+    {
+      question: "When will my service be scheduled?",
+      answer:
+        "Scheduling begins after we review your request and confirm scope. We work with you to find an appointment that fits your availability and our service hours. Larger projects may require a brief assessment or estimate visit before the main work is scheduled.",
+    },
+    {
+      question: "How long does a typical repair visit take?",
+      answer:
+        "Timing depends on the type of work. Small repairs may be completed in a single visit of one to three hours. Larger or multi-part projects may require multiple visits. We provide a clearer time estimate once we review your request and, when needed, prepare a formal estimate.",
+    },
+    {
+      question: "What are your service hours?",
+      answer:
+        "Our regular service hours are Mon–Fri 3pm–9pm and Sat–Sun 9am–9pm. Actual appointment availability may vary by day, technician schedule, and project type.",
+    },
+    {
+      question: "Do you offer same-day service?",
+      answer:
+        "Same-day service is not guaranteed. We do our best to accommodate urgent needs when scheduling allows. Selecting Emergency Review flags your request for priority review but does not guarantee same-day arrival unless we confirm it directly with you.",
+    },
+    {
       question: "Do you provide emergency services?",
       answer:
-        "We are not an emergency service provider. Urgent requests are flagged for immediate review, but for fire, gas leaks, major flooding, or life-threatening situations, call 911.",
+        "Urgent requests can be flagged as Emergency Review for priority follow-up. This does not guarantee emergency or same-day service. For active safety emergencies, contact appropriate emergency services immediately.",
     },
     {
       question: "How do I track my request?",
       answer:
         "After submitting a service request, create a free customer account to view status updates, upload photos, message our team, and approve estimates.",
     },
-    {
-      question: "Can renters submit requests?",
-      answer:
-        "Yes. Renters may submit requests, but landlord authorization may be required before work begins.",
-    },
   ];
 
   for (const [index, faq] of faqs.entries()) {
     const existing = await prisma.faq.findFirst({ where: { question: faq.question } });
-    if (!existing) {
+    if (existing) {
+      await prisma.faq.update({
+        where: { id: existing.id },
+        data: { ...faq, sortOrder: index, isActive: true },
+      });
+    } else {
       await prisma.faq.create({ data: { ...faq, sortOrder: index } });
     }
   }
+
+  await prisma.faq.updateMany({
+    where: { question: "Can renters submit requests?" },
+    data: { isActive: false },
+  });
 
   const testimonials = [
     {

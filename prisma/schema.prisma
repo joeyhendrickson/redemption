@@ -199,16 +199,16 @@ model ContractorProfile {
 model SiteSettings {
   id                    String   @id @default("default")
   companyName           String   @default("Redemption Home Services")
-  tagline               String   @default("Reliable repairs. Clear communication. Work completed with care.")
+  tagline               String   @default("Homes repaired, fixed, and redeemed with care.")
   logoUrl               String?
   primaryColor          String   @default("#000000")
-  accentColor           String   @default("#000000")
-  phone                 String   @default("(614) 555-0199")
+  accentColor           String   @default("#C9A227")
+  phone                 String   @default("(614) 747-1926")
   email                 String   @default("hello@redemptionhomeservices.com")
   address               String   @default("Columbus, Ohio")
   serviceArea           String   @default("Columbus and Central Ohio")
-  businessHours         String   @default("Mon–Fri 8am–6pm, Sat 9am–2pm")
-  emergencyDisclaimer   String   @default("We are not an emergency service. For fire, gas leaks, major flooding, or life-threatening situations, call 911 immediately.")
+  businessHours         String   @default("Mon-Fri 3pm-9pm, Sat-Sun 9am-9pm")
+  emergencyDisclaimer   String   @default("")
   facebookUrl           String?
   instagramUrl          String?
   linkedinUrl           String?

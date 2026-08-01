@@ -8,10 +8,9 @@ export default function PrivacyPage() {
           files to respond to requests, schedule work, and communicate about your project.
         </p>
         <p>
-          We do not sell personal information. Data is used to operate the service request, customer portal, and
-          internal operations platform.
+          We do not sell personal information. Data is used to respond to service requests, operate the customer portal,
+          schedule work, and communicate about your project.
         </p>
-        <p>Administrators can update this policy content from the admin portal.</p>
       </div>
     </div>
   );
