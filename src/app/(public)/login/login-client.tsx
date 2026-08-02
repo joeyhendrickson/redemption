@@ -51,7 +51,26 @@ export default function LoginPageClient() {
       if (error) throw error;
 
       const profileResponse = await fetch("/api/auth/profile");
-      const profile = await profileResponse.json();
+      let profile: { role?: string; message?: string; error?: string } = {};
+
+      if (profileResponse.ok) {
+        profile = await profileResponse.json();
+      } else {
+        try {
+          profile = await profileResponse.json();
+        } catch {
+          profile = {};
+        }
+      }
+
+      if (isEmployeeLogin && !profileResponse.ok) {
+        await supabase.auth.signOut();
+        throw new Error(
+          profile.message ??
+            "Admin access is not set up yet. The app database still needs its first-time setup in Supabase.",
+        );
+      }
+
       const destination =
         profile.role === "ADMIN"
           ? "/admin"
@@ -64,6 +83,10 @@ export default function LoginPageClient() {
       if (isEmployeeLogin && profile.role !== "ADMIN") {
         await supabase.auth.signOut();
         throw new Error("This login is for Redemption Home Services employees with admin access.");
+      }
+
+      if (!profileResponse.ok) {
+        throw new Error(profile.message ?? "Unable to load your account profile.");
       }
 
       toast.success("Welcome back.");
