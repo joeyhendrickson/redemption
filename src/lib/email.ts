@@ -1,5 +1,13 @@
 import { Resend } from "resend";
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function sendEmail({
@@ -7,7 +15,7 @@ export async function sendEmail({
   subject,
   html,
 }: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
 }) {
@@ -128,6 +136,57 @@ export function invoiceReadyEmail({
       <h1>Invoice ready, ${name}</h1>
       <p>Invoice <strong>${invoiceNumber}</strong> for <strong>${total}</strong> is ready.</p>
       <p><a href="${payUrl}">View and pay invoice</a></p>
+      <p>— Redemption Home Services</p>
+    `,
+  };
+}
+
+export function newServiceRequestAdminEmail({
+  referenceNumber,
+  customerName,
+  email,
+  phone,
+  serviceCategory,
+  title,
+  description,
+  urgencyLevel,
+  serviceAddress,
+  city,
+  state,
+  zipCode,
+  isEmergencyFlagged,
+  adminUrl,
+}: {
+  referenceNumber: string;
+  customerName: string;
+  email: string;
+  phone: string;
+  serviceCategory: string;
+  title: string;
+  description: string;
+  urgencyLevel: string;
+  serviceAddress: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  isEmergencyFlagged: boolean;
+  adminUrl: string;
+}) {
+  return {
+    subject: `${isEmergencyFlagged ? "Emergency — " : ""}New service request — ${referenceNumber}`,
+    html: `
+      <h1>New service request from a potential customer</h1>
+      <p>A new request was submitted by someone without an existing account.</p>
+      <p><strong>Reference:</strong> ${escapeHtml(referenceNumber)}</p>
+      <p><strong>Customer:</strong> ${escapeHtml(customerName)}</p>
+      <p><strong>Email:</strong> <a href="mailto:${encodeURIComponent(email)}">${escapeHtml(email)}</a></p>
+      <p><strong>Phone:</strong> ${escapeHtml(phone)}</p>
+      <p><strong>Service:</strong> ${escapeHtml(serviceCategory)} — ${escapeHtml(title)}</p>
+      <p><strong>Urgency:</strong> ${escapeHtml(urgencyLevel)}${isEmergencyFlagged ? " (flagged for emergency review)" : ""}</p>
+      <p><strong>Address:</strong> ${escapeHtml(serviceAddress)}, ${escapeHtml(city)}, ${escapeHtml(state)} ${escapeHtml(zipCode)}</p>
+      <p><strong>Description:</strong></p>
+      <p>${escapeHtml(description).replace(/\n/g, "<br />")}</p>
+      <p><a href="${adminUrl}" style="display:inline-block;padding:12px 20px;background:#000;color:#fff;text-decoration:none;border-radius:6px;">Review in admin portal</a></p>
       <p>— Redemption Home Services</p>
     `,
   };

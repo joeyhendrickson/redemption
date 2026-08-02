@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { serviceRequestSchema } from "@/lib/validations";
 import { generateReferenceNumber, detectEmergency } from "@/lib/utils/helpers";
 import { sendEmail, serviceRequestConfirmationEmail } from "@/lib/email";
+import { notifyAdminsOfNewServiceRequest } from "@/lib/notifications";
 import { inferFileCategory, uploadFileRecord, validateUploadFile } from "@/lib/storage";
 
 export async function POST(request: Request) {
@@ -109,6 +110,27 @@ export async function POST(request: Request) {
     }
 
     if (!existingUser) {
+      await notifyAdminsOfNewServiceRequest(
+        {
+          id: serviceRequest.id,
+          referenceNumber,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          serviceCategory: data.serviceCategory,
+          title: data.title,
+          description: data.description,
+          urgencyLevel: data.urgencyLevel,
+          serviceAddress: data.serviceAddress,
+          city: data.city,
+          state: data.state,
+          zipCode: data.zipCode,
+          isEmergencyFlagged,
+        },
+        request,
+      );
+
       await db.serviceRequest.update({
         where: { id: serviceRequest.id },
         data: { accountInviteSent: true },
