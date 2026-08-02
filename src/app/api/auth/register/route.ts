@@ -4,12 +4,10 @@ import { createClient } from "@supabase/supabase-js";
 import { db } from "@/lib/db";
 import { registerSchema } from "@/lib/validations";
 import { deliverAccountVerificationEmail } from "@/lib/auth-verification";
+import { getSupabaseServiceRoleKey, getSupabaseUrl } from "@/lib/supabase/config";
 
 function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  return createClient(getSupabaseUrl(), getSupabaseServiceRoleKey());
 }
 
 function getDatabaseErrorMessage(error: unknown) {

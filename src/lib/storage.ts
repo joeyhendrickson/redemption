@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "@/lib/constants";
+import { getSupabaseServiceRoleKey, getSupabaseUrl } from "@/lib/supabase/config";
 
 export function getStorageBucket() {
   return (
@@ -11,11 +12,7 @@ export function getStorageBucket() {
 }
 
 export function isStorageConfigured() {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY &&
-      getStorageBucket(),
-  );
+  return Boolean(getSupabaseUrl() && getSupabaseServiceRoleKey() && getStorageBucket());
 }
 
 function getStorageAdminClient() {
@@ -23,10 +20,7 @@ function getStorageAdminClient() {
     throw new Error("Supabase Storage is not configured");
   }
 
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  return createClient(getSupabaseUrl(), getSupabaseServiceRoleKey());
 }
 
 export function validateUploadFile(file: File) {

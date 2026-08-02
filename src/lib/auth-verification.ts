@@ -1,14 +1,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getAuthCallbackUrl } from "@/lib/app-url";
 import { accountVerificationEmail, sendEmail } from "@/lib/email";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/config";
 
 type ServiceClient = SupabaseClient;
 
 function getAnonAuthClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  return createClient(getSupabaseUrl(), getSupabaseAnonKey());
 }
 
 export async function sendSupabaseSignupConfirmation({

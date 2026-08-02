@@ -21,10 +21,8 @@ export async function middleware(request: NextRequest) {
   }
 
   const { createServerClient } = await import("@supabase/ssr");
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  const { getSupabaseAnonKey, getSupabaseUrl } = await import("@/lib/supabase/config");
+  const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
       cookies: {
         getAll() {
           return request.cookies.getAll();

@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { getAppUrl } from "@/lib/app-url";
+import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/config";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -22,10 +23,7 @@ export async function GET(request: NextRequest) {
 
   const supabaseResponse = NextResponse.redirect(successUrl);
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
+  const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
       cookies: {
         getAll() {
           return request.cookies.getAll();
