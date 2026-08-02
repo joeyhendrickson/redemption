@@ -28,6 +28,10 @@ export default function LoginPageClient() {
     if (searchParams.get("registered") === "1" || searchParams.get("verify") === "sent") {
       toast.message("Check your email to verify your account before signing in.");
     }
+    if (searchParams.get("verified") === "1") {
+      toast.success("Email verified. You can sign in now.");
+      setNeedsVerification(false);
+    }
     if (searchParams.get("error") === "verification_failed") {
       toast.error("Email verification failed or expired. Request a new link below.");
       setNeedsVerification(true);
@@ -113,6 +117,12 @@ export default function LoginPageClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {searchParams.get("verified") === "1" ? (
+            <div className="mb-4 rounded-lg border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-muted-foreground">
+              Your email is verified. Sign in below to access your customer portal.
+            </div>
+          ) : null}
+
           {(searchParams.get("registered") === "1" || searchParams.get("verify") === "sent") && (
             <div className="mb-4 rounded-lg border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-muted-foreground">
               We sent a verification link to your email. Click it to confirm your account, then sign in below.

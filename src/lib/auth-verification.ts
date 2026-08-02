@@ -21,17 +21,29 @@ export async function sendSupabaseSignupConfirmation({
   const redirectTo = getAuthCallbackUrl(request, "/customer");
   const supabase = getAnonAuthClient();
 
-  const { error } = await supabase.auth.resend({
+  const { error: resendError } = await supabase.auth.resend({
     type: "signup",
     email,
     options: { emailRedirectTo: redirectTo },
   });
 
-  if (error) {
-    throw new Error(error.message);
+  if (!resendError) {
+    return { redirectTo, method: "signup-resend" as const };
   }
 
-  return { redirectTo };
+  const { error: otpError } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: redirectTo,
+      shouldCreateUser: false,
+    },
+  });
+
+  if (otpError) {
+    throw new Error(otpError.message);
+  }
+
+  return { redirectTo, method: "magiclink" as const };
 }
 
 export async function deliverAccountVerificationEmail({
@@ -72,62 +84,6 @@ export async function deliverAccountVerificationEmail({
       );
     }
   }
-}
-
-export async function createSignupVerificationLink(
-  supabase: ServiceClient,
-  {
-    email,
-    password,
-    request,
-  }: {
-    email: string;
-    password: string;
-    request?: Request;
-  },
-) {
-  const redirectTo = getAuthCallbackUrl(request, "/customer");
-
-  const { data, error } = await supabase.auth.admin.generateLink({
-    type: "signup",
-    email,
-    password,
-    options: { redirectTo },
-  });
-
-  if (error || !data.properties.action_link || !data.user) {
-    throw new Error(error?.message ?? "Unable to create verification link.");
-  }
-
-  return {
-    userId: data.user.id,
-    verifyUrl: data.properties.action_link,
-  };
-}
-
-export async function createVerificationResendLink(
-  supabase: ServiceClient,
-  {
-    email,
-    request,
-  }: {
-    email: string;
-    request?: Request;
-  },
-) {
-  const redirectTo = getAuthCallbackUrl(request, "/customer");
-
-  const { data, error } = await supabase.auth.admin.generateLink({
-    type: "magiclink",
-    email,
-    options: { redirectTo },
-  });
-
-  if (error || !data.properties.action_link) {
-    throw new Error(error?.message ?? "Unable to create verification link.");
-  }
-
-  return data.properties.action_link;
 }
 
 export async function sendAccountVerificationEmail({
