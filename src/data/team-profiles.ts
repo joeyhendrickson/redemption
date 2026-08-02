@@ -24,6 +24,6 @@ export const TEAM_PROFILES: TeamProfile[] = [
     firstName: "Louis",
     role: "Service Manager",
     bio: "Louis leads day-to-day repair operations and works alongside the team on home repairs. He helps assign the right people to each job, keeps work moving efficiently, and assists on site when needed. Louis is a great resource for scheduling questions, progress updates, and making sure your repair experience stays smooth from arrival through completion.",
-    imageUrl: "/images/team/placeholder-3.svg",
+    imageUrl: "/images/team/louis.jpg",
   },
 ];

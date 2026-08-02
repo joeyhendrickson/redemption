@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const settings = await db.siteSettings.findUnique({ where: { id: "default" } });
   return NextResponse.json(settings);
