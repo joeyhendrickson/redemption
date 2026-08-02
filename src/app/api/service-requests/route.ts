@@ -98,11 +98,15 @@ export async function POST(request: Request) {
       activateUrl: existingUser ? undefined : activateUrl,
     });
 
-    await sendEmail({
+    const emailResult = await sendEmail({
       to: data.email,
       subject: emailContent.subject,
       html: emailContent.html,
     });
+
+    if (!emailResult.success) {
+      console.error("[service-request:confirmation-email-failed]", emailResult.error);
+    }
 
     if (!existingUser) {
       await db.serviceRequest.update({

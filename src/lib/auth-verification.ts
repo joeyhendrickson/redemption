@@ -71,16 +71,21 @@ export async function deliverAccountVerificationEmail({
 
     try {
       const emailContent = accountVerificationEmail({ name, verifyUrl });
-      await sendEmail({ to, subject: emailContent.subject, html: emailContent.html });
-      return { provider: "resend" as const };
+      const emailResult = await sendEmail({ to, subject: emailContent.subject, html: emailContent.html });
+      if (emailResult.success) {
+        return { provider: "resend" as const };
+      }
+
+      console.error("[email:resend-verification-failed]", emailResult.error);
     } catch (resendError) {
       console.error("[email:resend-verification-failed]", resendError);
-      throw new Error(
-        supabaseError instanceof Error
-          ? supabaseError.message
-          : "Verification email could not be sent.",
-      );
     }
+
+    throw new Error(
+      supabaseError instanceof Error
+        ? supabaseError.message
+        : "Verification email could not be sent.",
+    );
   }
 }
 

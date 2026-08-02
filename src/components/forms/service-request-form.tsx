@@ -218,7 +218,7 @@ export function ServiceRequestForm({
         <h2 className="text-2xl font-semibold">Request Service</h2>
         <div className="mt-2 h-1 w-14 rounded-full bg-gold" />
         <p className="mt-1 text-sm text-muted-foreground">
-          Tell us about your project. Most requests take about 5 minutes.
+          Tell us about your project. Most requests take about 2 minutes to submit.
         </p>
         <div className="mt-4 space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">

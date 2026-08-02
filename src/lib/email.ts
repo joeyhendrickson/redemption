@@ -13,16 +13,18 @@ export async function sendEmail({
 }) {
   if (!resend) {
     console.log("[email:stub]", { to, subject });
-    return { success: true, stub: true };
+    return { success: true as const, stub: true as const };
   }
 
   const from = process.env.EMAIL_FROM ?? "Redemption Home Services <noreply@redemptionhomeservices.com>";
 
   const { error } = await resend.emails.send({ from, to, subject, html });
   if (error) {
-    throw new Error(error.message);
+    console.error("[email:send-failed]", { to, subject, error });
+    return { success: false as const, error: error.message };
   }
-  return { success: true };
+
+  return { success: true as const };
 }
 
 export function serviceRequestConfirmationEmail({
