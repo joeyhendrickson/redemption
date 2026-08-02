@@ -1,11 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabaseAnonKey, getSupabaseUrl } from "@/lib/supabase/config";
+import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseConfigured } from "@/lib/supabase/config";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+  if (!isSupabaseConfigured()) {
+    console.error("[middleware] Supabase is not configured");
+    return supabaseResponse;
+  }
+
+  try {
+    const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -18,9 +24,12 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
-    },
-  );
+    });
 
-  await supabase.auth.getUser();
+    await supabase.auth.getUser();
+  } catch (error) {
+    console.error("[middleware] Failed to refresh Supabase session", error);
+  }
+
   return supabaseResponse;
 }

@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 import { updateSession } from "@/lib/supabase/middleware";
+import { getSupabaseAnonKey, getSupabaseUrl, isSupabaseConfigured } from "@/lib/supabase/config";
 
 const protectedPrefixes: Record<string, string[]> = {
   "/admin": ["ADMIN"],
@@ -10,39 +12,45 @@ const protectedPrefixes: Record<string, string[]> = {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const supabaseResponse = await updateSession(request);
+  try {
+    const supabaseResponse = await updateSession(request);
 
-  const matchedPrefix = Object.keys(protectedPrefixes).find((prefix) =>
-    pathname.startsWith(prefix),
-  );
+    const matchedPrefix = Object.keys(protectedPrefixes).find((prefix) =>
+      pathname.startsWith(prefix),
+    );
 
-  if (!matchedPrefix) {
-    return supabaseResponse;
-  }
+    if (!matchedPrefix) {
+      return supabaseResponse;
+    }
 
-  const { createServerClient } = await import("@supabase/ssr");
-  const { getSupabaseAnonKey, getSupabaseUrl } = await import("@/lib/supabase/config");
-  const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
+    if (!isSupabaseConfigured()) {
+      return supabaseResponse;
+    }
+
+    const supabase = createServerClient(getSupabaseUrl(), getSupabaseAnonKey(), {
       cookies: {
         getAll() {
           return request.cookies.getAll();
         },
         setAll() {},
       },
-    },
-  );
+    });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    if (!user) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    return supabaseResponse;
+  } catch (error) {
+    console.error("[middleware] Invocation failed", error);
+    return NextResponse.next({ request });
   }
-
-  return supabaseResponse;
 }
 
 export const config = {

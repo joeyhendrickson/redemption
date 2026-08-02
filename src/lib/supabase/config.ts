@@ -1,11 +1,36 @@
+function readEnv(...keys: string[]) {
+  for (const key of keys) {
+    const value = process.env[key]?.trim();
+    if (value) return value;
+  }
+
+  return "";
+}
+
+function normalizeSupabaseUrl(url: string) {
+  if (!url) return "";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `https://${url}`;
+}
+
 export function getSupabaseUrl() {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? "";
+  return normalizeSupabaseUrl(
+    readEnv("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL"),
+  );
 }
 
 export function getSupabaseAnonKey() {
-  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY ?? "";
+  return readEnv(
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    "SUPABASE_PUBLISHABLE_KEY",
+  );
 }
 
 export function getSupabaseServiceRoleKey() {
-  return process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY ?? "";
+  return readEnv("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY");
+}
+
+export function isSupabaseConfigured() {
+  return Boolean(getSupabaseUrl() && getSupabaseAnonKey());
 }
