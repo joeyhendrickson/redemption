@@ -3,6 +3,7 @@ export type TeamProfile = {
   role: string;
   bio: string;
   imageUrl: string;
+  linkedinUrl?: string;
 };
 
 export const TEAM_PROFILES: TeamProfile[] = [
@@ -10,13 +11,14 @@ export const TEAM_PROFILES: TeamProfile[] = [
     firstName: "Joe",
     role: "Owner",
     bio: "Joe helps turn your service request into a clear plan—from scoping the work and coordinating timelines to managing billing and making sure projects stay on track start to finish. If your job involves multiple visits, larger repairs, or detailed estimates, Joe is often your main point of contact for setup, updates, and delivery.",
-    imageUrl: "/images/team/placeholder-1.svg",
+    imageUrl: "/images/team/joe.jpg",
+    linkedinUrl: "https://www.linkedin.com/in/josephghendrickosn",
   },
   {
     firstName: "Ryan",
     role: "Service Director",
     bio: "Ryan leads our field services and still performs hands-on repair work across Columbus and Central Ohio. He sets the standard for quality on site, guides how jobs are completed, and makes sure the work matches what was promised. When you need skilled repairs done right, Ryan is directly involved in keeping service dependable and consistent.",
-    imageUrl: "/images/team/placeholder-2.svg",
+    imageUrl: "/images/team/ryan.jpg",
   },
   {
     firstName: "Louis",
