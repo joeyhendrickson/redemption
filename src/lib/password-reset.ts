@@ -14,6 +14,8 @@ function canSendBrandedEmail() {
   const from = process.env.EMAIL_FROM ?? "";
   return Boolean(process.env.RESEND_API_KEY) && !/@gmail\.com>/i.test(from);
 }
+
+function getServiceClient() {
   return createClient(getSupabaseUrl(), getSupabaseServiceRoleKey(), {
     auth: { autoRefreshToken: false, persistSession: false },
   });
@@ -46,6 +48,11 @@ export async function sendPasswordResetCode({
   request?: Request;
 }): Promise<PasswordResetResult> {
   const normalizedEmail = email.toLowerCase();
+
+  if (!canSendBrandedEmail()) {
+    return sendSupabaseRecoveryLink(normalizedEmail, request);
+  }
+
   const supabase = getServiceClient();
   const redirectTo = `${getAppUrl(request)}/login`;
 
