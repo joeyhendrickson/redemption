@@ -55,6 +55,26 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Enter a valid email address."),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    email: z.string().email("Enter a valid email address."),
+    code: z
+      .string()
+      .trim()
+      .min(6, "Enter the 6-digit code from your email.")
+      .max(8, "Enter the 6-digit code from your email."),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirmPassword: z.string().min(8, "Confirm your new password."),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
 export const contactSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),

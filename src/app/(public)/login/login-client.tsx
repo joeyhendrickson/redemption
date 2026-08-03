@@ -36,6 +36,9 @@ export default function LoginPageClient() {
       toast.error("Email verification failed or expired. Request a new link below.");
       setNeedsVerification(true);
     }
+    if (searchParams.get("reset") === "success") {
+      toast.success("Your password has been updated. Sign in with your new password.");
+    }
   }, [searchParams]);
 
   async function handleSubmit(event: React.FormEvent) {
@@ -184,7 +187,19 @@ export default function LoginPageClient() {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <div className="mb-2 flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href={
+                    isEmployeeLogin
+                      ? "/forgot-password?redirect=/admin"
+                      : `/forgot-password?email=${encodeURIComponent(form.email)}`
+                  }
+                  className="text-xs text-muted-foreground underline hover:text-foreground"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"

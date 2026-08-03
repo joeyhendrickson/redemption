@@ -60,6 +60,21 @@ export function serviceRequestConfirmationEmail({
   };
 }
 
+export function passwordResetCodeEmail({ name, code }: { name: string; code: string }) {
+  return {
+    subject: "Your password reset code — Redemption Home Services",
+    html: `
+      <h1>Reset your password</h1>
+      <p>Hi ${escapeHtml(name)},</p>
+      <p>Use this code to reset your password. It expires in one hour.</p>
+      <p style="font-size:28px;font-weight:bold;letter-spacing:4px;margin:24px 0;">${escapeHtml(code)}</p>
+      <p>Enter this code on the password reset page along with your new password.</p>
+      <p>If you did not request a password reset, you can ignore this email.</p>
+      <p>— Redemption Home Services</p>
+    `,
+  };
+}
+
 export function accountVerificationEmail({ name, verifyUrl }: { name: string; verifyUrl: string }) {
   return {
     subject: "Verify your Redemption Home Services account",

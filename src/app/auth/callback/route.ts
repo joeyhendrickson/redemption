@@ -13,8 +13,13 @@ export async function GET(request: NextRequest) {
   const safeNext = next.startsWith("/") ? next : "/customer";
 
   const origin = getAppUrl(request);
-  const successUrl = `${origin}/login?verified=1&email=${encodeURIComponent(searchParams.get("email") ?? "")}`;
-  const errorUrl = `${origin}/login?error=verification_failed`;
+  const isRecovery = type === "recovery";
+  const successUrl = isRecovery
+    ? `${origin}/forgot-password?recovery=1&email=${encodeURIComponent(searchParams.get("email") ?? "")}`
+    : `${origin}/login?verified=1&email=${encodeURIComponent(searchParams.get("email") ?? "")}`;
+  const errorUrl = isRecovery
+    ? `${origin}/forgot-password?error=recovery_failed`
+    : `${origin}/login?error=verification_failed`;
 
   if (searchParams.get("error")) {
     console.error("[auth/callback] provider error:", searchParams.get("error_description"));
@@ -40,6 +45,12 @@ export async function GET(request: NextRequest) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      const recoveryNext = searchParams.get("next") === "/forgot-password";
+      if (isRecovery || recoveryNext) {
+        return NextResponse.redirect(
+          `${origin}/forgot-password?recovery=1&email=${encodeURIComponent(searchParams.get("email") ?? "")}`,
+        );
+      }
       return supabaseResponse;
     }
     console.error("[auth/callback] exchangeCodeForSession failed:", error.message);
