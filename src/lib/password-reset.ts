@@ -4,6 +4,12 @@ import { db } from "@/lib/db";
 import { passwordResetCodeEmail, sendEmail } from "@/lib/email";
 import { getSupabaseAnonKey, getSupabaseServiceRoleKey, getSupabaseUrl } from "@/lib/supabase/config";
 
+export type PasswordResetDelivery = "code" | "link";
+
+export type PasswordResetResult =
+  | { sent: true; delivery: PasswordResetDelivery; provider: "resend" | "supabase" }
+  | { sent: false; reason: "user_not_found" | "delivery_failed" };
+
 function getServiceClient() {
   return createClient(getSupabaseUrl(), getSupabaseServiceRoleKey(), {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -16,13 +22,26 @@ function getAnonClient() {
   });
 }
 
+async function sendSupabaseRecoveryLink(email: string, request?: Request) {
+  const anon = getAnonClient();
+  const redirectTo = `${getAppUrl(request)}/auth/callback?type=recovery&next=/forgot-password`;
+  const { error } = await anon.auth.resetPasswordForEmail(email, { redirectTo });
+
+  if (error) {
+    console.error("[password-reset] resetPasswordForEmail failed:", error.message);
+    throw new Error("Unable to send password reset email.");
+  }
+
+  return { sent: true as const, delivery: "link" as const, provider: "supabase" as const };
+}
+
 export async function sendPasswordResetCode({
   email,
   request,
 }: {
   email: string;
   request?: Request;
-}) {
+}): Promise<PasswordResetResult> {
   const normalizedEmail = email.toLowerCase();
   const supabase = getServiceClient();
   const redirectTo = `${getAppUrl(request)}/login`;
@@ -35,13 +54,13 @@ export async function sendPasswordResetCode({
 
   if (error) {
     console.error("[password-reset] generateLink failed:", error.message);
-    return { sent: false as const };
+    return { sent: false, reason: "user_not_found" };
   }
 
   const code = data.properties?.email_otp;
   if (!code) {
     console.error("[password-reset] generateLink did not return email_otp");
-    return { sent: false as const };
+    return sendSupabaseRecoveryLink(normalizedEmail, request);
   }
 
   const user = await db.user.findUnique({ where: { email: normalizedEmail } }).catch(() => null);
@@ -54,20 +73,11 @@ export async function sendPasswordResetCode({
   });
 
   if (!result.success) {
-    const anon = getAnonClient();
-    const { error: resetError } = await anon.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${getAppUrl(request)}/auth/callback?type=recovery&next=/forgot-password`,
-    });
-
-    if (resetError) {
-      console.error("[password-reset] fallback resetPasswordForEmail failed:", resetError.message);
-      throw new Error("Unable to send password reset email.");
-    }
-
-    return { sent: true as const, provider: "supabase" as const };
+    console.warn("[password-reset] Resend unavailable, falling back to Supabase recovery email");
+    return sendSupabaseRecoveryLink(normalizedEmail, request);
   }
 
-  return { sent: true as const, provider: "resend" as const };
+  return { sent: true, delivery: "code", provider: "resend" };
 }
 
 export async function resetPasswordWithCode({

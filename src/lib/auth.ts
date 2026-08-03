@@ -2,6 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import type { User, UserRole } from "@/generated/prisma/client";
 
+function isDatabaseUnavailable(error: unknown) {
+  if (!(error instanceof Error)) return false;
+  return /DATABASE_URL is not set|P1001|Can't reach database|connection terminated|ECONNREFUSED/i.test(
+    error.message,
+  );
+}
+
 type AuthUser = {
   id: string;
   email?: string;
@@ -143,6 +150,9 @@ export async function getCurrentUser(): Promise<User | null> {
 
     return user;
   } catch (error) {
+    if (isDatabaseUnavailable(error)) {
+      throw error;
+    }
     console.error("[auth] getCurrentUser failed", error);
     return null;
   }

@@ -20,8 +20,8 @@ export async function sendEmail({
   html: string;
 }) {
   if (!resend) {
-    console.log("[email:stub]", { to, subject });
-    return { success: true as const, stub: true as const };
+    console.warn("[email:stub]", { to, subject });
+    return { success: false as const, stub: true as const, error: "Email provider is not configured." };
   }
 
   const from = process.env.EMAIL_FROM ?? "Redemption Home Services <noreply@redemptionhomeservices.com>";

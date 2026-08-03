@@ -26,6 +26,17 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[auth/profile] failed", error);
+    if (error instanceof Error && /DATABASE_URL is not set|P1001|Can't reach database|connection terminated|ECONNREFUSED/i.test(error.message)) {
+      return NextResponse.json(
+        {
+          error: "Database unavailable",
+          message:
+            "Your sign-in worked, but the app cannot reach the database. Update DATABASE_URL on Vercel with your current Supabase connection string (use the pooler URI from Supabase → Connect).",
+        },
+        { status: 503 },
+      );
+    }
+
     return NextResponse.json(
       {
         error: "Profile lookup failed",

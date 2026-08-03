@@ -78,7 +78,12 @@ export default function ForgotPasswordPageClient() {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Unable to send reset code.");
 
-      toast.success(result.message ?? "Reset code sent.");
+      toast.success(result.message ?? "Password reset instructions sent.");
+      if (result.delivery === "link") {
+        setStep("request");
+        return;
+      }
+
       setStep("reset");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to send reset code.");

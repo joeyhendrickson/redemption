@@ -89,6 +89,9 @@ export default function LoginPageClient() {
       }
 
       if (!profileResponse.ok) {
+        if (profileResponse.status === 503) {
+          await supabase.auth.signOut();
+        }
         throw new Error(profile.message ?? "Unable to load your account profile.");
       }
 
