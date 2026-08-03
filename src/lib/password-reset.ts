@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { getAppUrl } from "@/lib/app-url";
+import { getAppUrl, getPasswordRecoveryCallbackUrl } from "@/lib/app-url";
 import { db } from "@/lib/db";
 import { passwordResetCodeEmail, sendEmail } from "@/lib/email";
 import { getSupabaseAnonKey, getSupabaseServiceRoleKey, getSupabaseUrl } from "@/lib/supabase/config";
@@ -29,7 +29,8 @@ function getAnonClient() {
 
 async function sendSupabaseRecoveryLink(email: string, request?: Request) {
   const anon = getAnonClient();
-  const redirectTo = `${getAppUrl(request)}/auth/callback?type=recovery&next=/forgot-password`;
+  const redirectTo = getPasswordRecoveryCallbackUrl(request);
+  console.info("[password-reset] recovery redirectTo:", redirectTo);
   const { error } = await anon.auth.resetPasswordForEmail(email, { redirectTo });
 
   if (error) {

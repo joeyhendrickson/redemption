@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
+import { useSupabaseAuthHashErrors } from "@/components/auth/supabase-auth-hash-handler";
 
 type Step = "request" | "reset" | "recovery-link";
 
 export default function ForgotPasswordPageClient() {
+  useSupabaseAuthHashErrors();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/customer";
