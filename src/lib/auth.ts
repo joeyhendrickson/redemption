@@ -2,43 +2,98 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import type { User, UserRole } from "@/generated/prisma/client";
 
-function getAuthName(authUser: { user_metadata?: Record<string, unknown> }, fallback: string) {
-  const value = authUser.user_metadata?.[fallback];
+type AuthUser = {
+  id: string;
+  email?: string;
+  email_confirmed_at?: string | null;
+  user_metadata?: Record<string, unknown>;
+};
+
+function getAuthName(authUser: AuthUser, field: string) {
+  const value = authUser.user_metadata?.[field];
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-async function provisionAdminFromAuth(authUser: {
-  id: string;
-  email?: string;
-  user_metadata?: Record<string, unknown>;
-}) {
-  if (!authUser.email) return null;
-  if (authUser.user_metadata?.role !== "ADMIN") {
-    return null;
-  }
+function resolveRole(authUser: AuthUser): UserRole {
+  const metadataRole = authUser.user_metadata?.role;
+  if (metadataRole === "ADMIN") return "ADMIN";
+  if (metadataRole === "CONTRACTOR") return "CONTRACTOR";
+  return "CUSTOMER";
+}
 
-  const email = authUser.email.toLowerCase();
-
-  return db.user.upsert({
-    where: { email },
-    update: {
-      supabaseId: authUser.id,
-      firstName: getAuthName(authUser, "firstName") ?? "Joe",
-      lastName: getAuthName(authUser, "lastName") ?? "Hendrickson",
-      role: "ADMIN",
-      emailVerified: true,
-      isActive: true,
-    },
-    create: {
-      supabaseId: authUser.id,
-      email,
-      firstName: getAuthName(authUser, "firstName") ?? "Joe",
-      lastName: getAuthName(authUser, "lastName") ?? "Hendrickson",
-      role: "ADMIN",
-      emailVerified: true,
-      isActive: true,
+async function loadUserWithProfiles(userId: string) {
+  return db.user.findUnique({
+    where: { id: userId },
+    include: {
+      customerProfile: true,
+      contractorProfile: true,
     },
   });
+}
+
+async function linkCustomerServiceRequests(userId: string, email: string) {
+  await db.serviceRequest.updateMany({
+    where: { email, customerId: null },
+    data: { customerId: userId },
+  });
+}
+
+async function provisionAppUserFromAuth(authUser: AuthUser) {
+  if (!authUser.email) return null;
+
+  const email = authUser.email.toLowerCase();
+  const role = resolveRole(authUser);
+  const firstName = getAuthName(authUser, "firstName") ?? email.split("@")[0] ?? "Customer";
+  const lastName = getAuthName(authUser, "lastName") ?? "";
+  const phone =
+    typeof authUser.user_metadata?.phone === "string" ? authUser.user_metadata.phone : undefined;
+  const emailVerified = Boolean(authUser.email_confirmed_at);
+
+  const existingByEmail = await db.user.findUnique({ where: { email } });
+  if (existingByEmail) {
+    const updated = await db.user.update({
+      where: { email },
+      data: {
+        supabaseId: authUser.id,
+        firstName: existingByEmail.firstName || firstName,
+        lastName: existingByEmail.lastName || lastName,
+        emailVerified: emailVerified || existingByEmail.emailVerified,
+        isActive: true,
+      },
+    });
+
+    if (updated.role === "CUSTOMER") {
+      await db.customerProfile.upsert({
+        where: { userId: updated.id },
+        update: {},
+        create: { userId: updated.id },
+      });
+      await linkCustomerServiceRequests(updated.id, email);
+    }
+
+    return updated;
+  }
+
+  const created = await db.user.create({
+    data: {
+      supabaseId: authUser.id,
+      email,
+      firstName,
+      lastName,
+      phone,
+      role,
+      emailVerified,
+      isActive: true,
+      ...(role === "CUSTOMER" ? { customerProfile: { create: {} } } : {}),
+      ...(role === "CONTRACTOR" ? { contractorProfile: { create: {} } } : {}),
+    },
+  });
+
+  if (role === "CUSTOMER") {
+    await linkCustomerServiceRequests(created.id, email);
+  }
+
+  return created;
 }
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -58,16 +113,31 @@ export async function getCurrentUser(): Promise<User | null> {
       },
     });
 
-    if (!user) {
-      const provisioned = await provisionAdminFromAuth(authUser);
-      if (provisioned) {
-        user = await db.user.findUnique({
-          where: { id: provisioned.id },
+    if (!user && authUser.email) {
+      user = await db.user.findUnique({
+        where: { email: authUser.email.toLowerCase() },
+        include: {
+          customerProfile: true,
+          contractorProfile: true,
+        },
+      });
+
+      if (user && user.supabaseId !== authUser.id) {
+        user = await db.user.update({
+          where: { id: user.id },
+          data: { supabaseId: authUser.id },
           include: {
             customerProfile: true,
             contractorProfile: true,
           },
         });
+      }
+    }
+
+    if (!user) {
+      const provisioned = await provisionAppUserFromAuth(authUser);
+      if (provisioned) {
+        user = await loadUserWithProfiles(provisioned.id);
       }
     }
 
