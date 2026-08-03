@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-function readAuthHashErrors() {
+function readAuthHashParams() {
   if (typeof window === "undefined") return null;
 
   const hash = window.location.hash.startsWith("#")
@@ -11,28 +12,62 @@ function readAuthHashErrors() {
     : window.location.hash;
   if (!hash) return null;
 
-  const params = new URLSearchParams(hash);
-  const error = params.get("error");
-  if (!error) return null;
+  return new URLSearchParams(hash);
+}
 
-  return {
-    error,
-    description: params.get("error_description") ?? error,
-  };
+function clearAuthHash() {
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+}
+
+export function SupabaseAuthRedirectHandler() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const params = readAuthHashParams();
+    if (!params) return;
+
+    const error = params.get("error");
+    if (error) {
+      const description = (params.get("error_description") ?? error).replace(/\+/g, " ");
+      if (/otp_expired|invalid/i.test(error + description)) {
+        toast.error("That reset link expired or was already used. Request a new one below.");
+      } else {
+        toast.error(description);
+      }
+      clearAuthHash();
+      return;
+    }
+
+    const type = params.get("type");
+    const accessToken = params.get("access_token");
+
+    if (accessToken && type === "recovery") {
+      clearAuthHash();
+      router.replace("/forgot-password?recovery=1");
+      return;
+    }
+
+    if (accessToken && type === "signup") {
+      clearAuthHash();
+      router.replace("/login?verified=1");
+    }
+  }, [router]);
+
+  return null;
 }
 
 export function useSupabaseAuthHashErrors() {
   useEffect(() => {
-    const authError = readAuthHashErrors();
-    if (!authError) return;
+    const params = readAuthHashParams();
+    if (!params?.get("error")) return;
 
-    const description = authError.description.replace(/\+/g, " ");
-    if (/otp_expired|invalid/i.test(authError.error + description)) {
+    const error = params.get("error")!;
+    const description = (params.get("error_description") ?? error).replace(/\+/g, " ");
+    if (/otp_expired|invalid/i.test(error + description)) {
       toast.error("That reset link expired or was already used. Request a new one below.");
     } else {
       toast.error(description);
     }
-
-    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    clearAuthHash();
   }, []);
 }

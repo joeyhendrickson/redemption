@@ -47,5 +47,5 @@ export function getAuthCallbackUrl(request?: Request, next = "/customer") {
 }
 
 export function getPasswordRecoveryCallbackUrl(request?: Request) {
-  return `${getAppUrl(request)}/auth/callback?type=recovery&next=/forgot-password`;
+  return `${getAppUrl(request)}/auth/callback/recovery`;
 }
