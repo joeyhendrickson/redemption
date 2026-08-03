@@ -10,7 +10,10 @@ export type PasswordResetResult =
   | { sent: true; delivery: PasswordResetDelivery; provider: "resend" | "supabase" }
   | { sent: false; reason: "user_not_found" | "delivery_failed" };
 
-function getServiceClient() {
+function canSendBrandedEmail() {
+  const from = process.env.EMAIL_FROM ?? "";
+  return Boolean(process.env.RESEND_API_KEY) && !/@gmail\.com>/i.test(from);
+}
   return createClient(getSupabaseUrl(), getSupabaseServiceRoleKey(), {
     auth: { autoRefreshToken: false, persistSession: false },
   });
